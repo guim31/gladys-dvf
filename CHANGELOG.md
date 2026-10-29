@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-29
+
 ### Added
 
 - 100 m and 200 m zones around the house, for dense city centres; next to each median of the
@@ -36,5 +38,6 @@ the notes of the version's GitHub Release.
 - "Check now" action, clear status messages (no location, unknown commune, Alsace-Moselle and
   Mayotte without DVF, service unreachable), four languages (en, fr, de, es).
 
-[Unreleased]: https://github.com/guim31/gladys-dvf/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/guim31/gladys-dvf/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/guim31/gladys-dvf/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/guim31/gladys-dvf/releases/tag/v1.0.0
