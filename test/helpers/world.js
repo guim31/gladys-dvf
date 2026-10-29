@@ -94,6 +94,9 @@ export function dvfRow({
   lon = HOUSE.longitude,
   nature = 'Vente',
   commune = TOULOUSE,
+  number = '',
+  suffix = '',
+  street = '',
 }) {
   const values = {
     id_mutation: id,
@@ -101,6 +104,9 @@ export function dvfRow({
     numero_disposition: '000001',
     nature_mutation: nature,
     valeur_fonciere: String(price),
+    adresse_numero: number,
+    adresse_suffixe: suffix,
+    adresse_nom_voie: street,
     code_commune: commune,
     nom_commune: COMMUNES[commune]?.nom ?? '',
     code_departement: commune.slice(0, 2),

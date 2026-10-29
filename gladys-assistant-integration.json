@@ -174,6 +174,24 @@
           }
         },
         {
+          "value": "100",
+          "label": {
+            "en": "100 m",
+            "fr": "100 m",
+            "de": "100 m",
+            "es": "100 m"
+          }
+        },
+        {
+          "value": "200",
+          "label": {
+            "en": "200 m",
+            "fr": "200 m",
+            "de": "200 m",
+            "es": "200 m"
+          }
+        },
+        {
           "value": "300",
           "label": {
             "en": "300 m",
@@ -557,6 +575,80 @@
           },
           "required": false,
           "default": true
+        },
+        {
+          "key": "show_addresses",
+          "type": "boolean",
+          "label": {
+            "en": "Show the addresses of the sales",
+            "fr": "Afficher l'adresse des ventes",
+            "de": "Adressen der Verkäufe anzeigen",
+            "es": "Mostrar la dirección de las ventas"
+          },
+          "description": {
+            "en": "Number and street as published in DVF, when the file gives them.",
+            "fr": "Numéro et voie tels que publiés dans DVF, quand le fichier les donne.",
+            "de": "Hausnummer und Straße wie in DVF veröffentlicht, wenn die Datei sie enthält.",
+            "es": "Número y calle tal como se publican en DVF, cuando el archivo los da."
+          },
+          "required": false,
+          "default": true
+        },
+        {
+          "key": "sales_count",
+          "type": "select",
+          "label": {
+            "en": "Number of sales shown",
+            "fr": "Nombre de ventes affichées",
+            "de": "Anzahl der angezeigten Verkäufe",
+            "es": "Número de ventas mostradas"
+          },
+          "description": {
+            "en": "Gladys shows 10 rows at most in a widget list.",
+            "fr": "Gladys affiche 10 lignes au plus dans une liste de widget.",
+            "de": "Gladys zeigt höchstens 10 Zeilen in einer Widget-Liste.",
+            "es": "Gladys muestra 10 filas como máximo en una lista de widget."
+          },
+          "required": false,
+          "default": "10",
+          "options": [
+            {
+              "value": "1",
+              "label": {
+                "en": "1",
+                "fr": "1",
+                "de": "1",
+                "es": "1"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3",
+                "fr": "3",
+                "de": "3",
+                "es": "3"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5",
+                "fr": "5",
+                "de": "5",
+                "es": "5"
+              }
+            },
+            {
+              "value": "10",
+              "label": {
+                "en": "10",
+                "fr": "10",
+                "de": "10",
+                "es": "10"
+              }
+            }
+          ]
         }
       ]
     }

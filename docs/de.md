@@ -26,8 +26,8 @@ Etalab geolokalisiert und als offene Daten veröffentlicht. Ohne Konto, ohne Sch
 - Eine **Szenen-Aktion** „Zusammenfassung der Immobilienverkäufe“: ein Satz, bereit für eine
   Nachricht („Im Umkreis von 1 km um Maison: 225 Verkäufe in den 12 veröffentlichten Monaten bis
   Dezember 2025; Medianpreise: Wohnungen 4.866 €/m².“).
-- Ein **Widget** für das Dashboard: die Medianpreise und die **10 letzten Verkäufe** der Zone
-  (Art, Zimmer, Fläche, Preis, Datum, Entfernung vom Haus).
+- Ein **Widget** für das Dashboard: die Medianpreise und die **letzten Verkäufe** der Zone (1 bis
+  10, standardmäßig 10: Hausnummer und Straße, Art, Fläche, Preis, Datum, Entfernung vom Haus).
 - Einen Knopf **„Jetzt prüfen“** in der Konfiguration, der diese Zusammenfassung für jede Zone
   liefert.
 
@@ -47,13 +47,13 @@ Etalab geolokalisiert und als offene Daten veröffentlicht. Ohne Konto, ohne Sch
 
 ### Einstellungen
 
-| Einstellung                | Was sie bewirkt                                                                                                                                    |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Standort                   | **Mein Haus in Gladys** (Standard), **Alle meine Häuser in Gladys** oder **Eine Gemeinde (INSEE-Code)**.                                           |
-| Haus                       | Leer (Standard): jedes Haus in Gladys mit Standort, je ein Gerät. Ein Haus: nur dieses.                                                            |
-| Zone um das Haus           | **300 m**, **500 m**, **1 km** (Standard), **2 km** oder **Seine ganze Gemeinde**. Ein Kreis kann mehrere Gemeinden abdecken: alle werden gelesen. |
-| INSEE-Code der Gemeinde    | 5 Zeichen, **nicht die Postleitzahl**: `31555` für Toulouse, `2A004` für Ajaccio.                                                                  |
-| Sprache der Funktionsnamen | Namen der Funktionen eines neuen Geräts, Sprache der Daten, der Zusammenfassung und der Variablen des Auslösers. Standard: Französisch.            |
+| Einstellung                | Was sie bewirkt                                                                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Standort                   | **Mein Haus in Gladys** (Standard), **Alle meine Häuser in Gladys** oder **Eine Gemeinde (INSEE-Code)**.                                                                 |
+| Haus                       | Leer (Standard): jedes Haus in Gladys mit Standort, je ein Gerät. Ein Haus: nur dieses.                                                                                  |
+| Zone um das Haus           | **100 m**, **200 m**, **300 m**, **500 m**, **1 km** (Standard), **2 km** oder **Seine ganze Gemeinde**. Ein Kreis kann mehrere Gemeinden abdecken: alle werden gelesen. |
+| INSEE-Code der Gemeinde    | 5 Zeichen, **nicht die Postleitzahl**: `31555` für Toulouse, `2A004` für Ajaccio.                                                                                        |
+| Sprache der Funktionsnamen | Namen der Funktionen eines neuen Geräts, Sprache der Daten, der Zusammenfassung und der Variablen des Auslösers. Standard: Französisch.                                  |
 
 Speichere, öffne dann den Tab **Entdecken** der Integration und füge das Gerät hinzu. Der erste
 Download dauert einige Sekunden (kleine Gemeinde) bis eine Minute (Paris).
@@ -88,9 +88,17 @@ Monate nach den Verkäufen.
 ## Widget
 
 Füge das Widget **Immobilienverkäufe** zum Dashboard hinzu. Einstellungen: die **Zone** (leer: die
-erste) und zwei Schalter, um **die Medianpreise** oder **die letzten Verkäufe** auszublenden. Es
-zeigt drei Kacheln (Wohnungen, Häuser, Anzahl der Verkäufe), dann bis zu 10 Verkäufe und die
-Quelle mit dem Namen, den du dem Gerät in Gladys gegeben hast. Keine Adresse wird angezeigt.
+erste), Schalter, um **die Medianpreise**, **die letzten Verkäufe** oder **ihre Adressen**
+auszublenden, und die **Anzahl der angezeigten Verkäufe** (1, 3, 5 oder 10, standardmäßig 10:
+Gladys zeigt höchstens 10 Zeilen in einer Widget-Liste). Es zeigt drei Kacheln (Wohnungen, Häuser,
+Anzahl der Verkäufe; neben jedem Median in Klammern die Zahl der Verkäufe, auf der er beruht),
+dann die letzten Verkäufe und die Quelle mit dem Namen, den du dem Gerät in Gladys gegeben hast.
+Ein Verkauf zeigt **Hausnummer und Straße**, wenn die DVF-Datei sie enthält, nie die
+Postleitzahl, die Gemeinde oder einen Namen; sonst Art, Zimmer und Fläche.
+
+Mit einer Zone von **100 m oder 200 m** hat ein Stadtzentrum einige Dutzend Verkäufe im Jahr, oft
+weniger: ein Median aus 3 bis 10 Verkäufen schwankt stark von einer Veröffentlichung zur nächsten.
+Schau auf die Zahl in Klammern, bevor du Schlüsse ziehst.
 
 ## Szenen-Auslöser und -Aktion
 
@@ -101,6 +109,9 @@ Quelle mit dem Namen, den du dem Gerät in Gladys gegeben hast. Keine Adresse wi
   (oder eine geänderte Zone) löst nichts aus: sie ist die Referenz.
 - **Zusammenfassung der Immobilienverkäufe**: liefert den zusammenfassenden Satz und die Zahlen
   einer Zone für die nächste Aktion (zum Beispiel eine Nachricht senden).
+  Der Satz der Aktion und des Auslösers endet mit dem letzten Verkauf der Zone („Letzter
+  Verkauf: 12B RUE DE L EXEMPLE, Wohnung 52 m², 250.000 €, am 31.12.2025.“), mit Hausnummer und
+  Straße, wenn die Datei sie enthält; der Knopf „Jetzt prüfen“ lässt ihn weg.
 
 ## Szenenbeispiele
 
@@ -122,8 +133,10 @@ Quelle mit dem Namen, den du dem Gerät in Gladys gegeben hast. Keine Adresse wi
   gespeichert in `/data`. Für diese Dienste ist kein Kontingent veröffentlicht; die Integration
   bleibt weit darunter.
 - **Nutzungsbedingungen von DVF**: jede **Re-Identifizierung** von Personen (Verkäufer, Käufer)
-  ist verboten. Die Dateien enthalten keine Namen; die Integration speichert und zeigt keine
-  Adresse, nur Art, Fläche, Preis, Datum und eine Entfernung.
+  ist verboten. Die Dateien enthalten keine Namen, und die Integration veröffentlicht **keine
+  personenbezogenen Daten**: gespeichert und angezeigt werden Hausnummer und Straße eines Verkaufs, wie
+  Etalab sie veröffentlicht (nie Postleitzahl, Gemeinde, Flurstück oder Namen), Art, Fläche,
+  Preis, Datum und eine Entfernung.
 
 ## Fehlerbehebung
 

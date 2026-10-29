@@ -24,8 +24,8 @@ Etalab. No account, no key.
 - A **scene action** "Property sales summary": a sentence ready to send in a message ("Within
   1 km of Maison: 225 sales in the 12 months published up to December 2025; median prices: flats
   4,866 €/m².").
-- A dashboard **widget**: the median prices and the **10 latest sales** of the zone (type,
-  rooms, surface, price, date, distance from the house).
+- A dashboard **widget**: the median prices and the **latest sales** of the zone (1 to 10,
+  10 by default: number and street, type, surface, price, date, distance from the house).
 - A **"Check now"** button in the configuration, giving that summary for each zone.
 
 ## Requirements
@@ -44,13 +44,13 @@ Etalab. No account, no key.
 
 ### Settings
 
-| Setting                       | What it does                                                                                                                             |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Location                      | **My house in Gladys** (default), **All my houses in Gladys** or **A commune (INSEE code)**.                                             |
-| House                         | Empty (default): every house of Gladys that has a location, one device each. A house: that one only.                                     |
-| Zone around the house         | **300 m**, **500 m**, **1 km** (default), **2 km**, or **Its whole commune**. A circle may cover several communes: their sales are read. |
-| INSEE code of the commune     | 5 characters, **not the postcode**: `31555` for Toulouse, `2A004` for Ajaccio.                                                           |
-| Language of the feature names | Names of the features of a new device, language of the dates, of the summary and of the trigger variables. French by default.            |
+| Setting                       | What it does                                                                                                                                                   |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Location                      | **My house in Gladys** (default), **All my houses in Gladys** or **A commune (INSEE code)**.                                                                   |
+| House                         | Empty (default): every house of Gladys that has a location, one device each. A house: that one only.                                                           |
+| Zone around the house         | **100 m**, **200 m**, **300 m**, **500 m**, **1 km** (default), **2 km**, or **Its whole commune**. A circle may cover several communes: their sales are read. |
+| INSEE code of the commune     | 5 characters, **not the postcode**: `31555` for Toulouse, `2A004` for Ajaccio.                                                                                 |
+| Language of the feature names | Names of the features of a new device, language of the dates, of the summary and of the trigger variables. French by default.                                  |
 
 Save, then open the **Discover** tab of the integration and add the device. The first download
 takes from a few seconds (small commune) to a minute (Paris).
@@ -84,9 +84,16 @@ A median is only published from **3 sales**: below that, the feature stays witho
 ## Widget
 
 Add the **Property sales** widget to the dashboard. Settings: the **zone** (empty: the first
-one), and two switches to **hide the median prices** or **the latest sales**. It shows three
-tiles (flats, houses, number of sales), then up to 10 sales, and the source with the name given
-to the device in Gladys. No address is shown.
+one), switches to **hide the median prices**, **the latest sales** or **their addresses**, and
+the **number of sales shown** (1, 3, 5 or 10, 10 by default: Gladys shows 10 rows at most in a
+widget list). It shows three tiles (flats, houses, number of sales; next to each median, in
+brackets, the number of sales it rests on), then the latest sales, and the source with the name
+given to the device in Gladys. A sale shows its **number and street** when the DVF file gives
+them, never the postcode, the commune nor anyone's name; otherwise its type, rooms and surface.
+
+With a **100 m or 200 m** zone, a city centre gives a few dozen sales a year, often fewer: a
+median resting on 3 to 10 sales moves a lot from one release to the next. Look at the number in
+brackets before drawing conclusions.
 
 ## Scene trigger and action
 
@@ -96,6 +103,9 @@ to the device in Gladys. No address is shown.
   first release seen (or a changed zone) fires nothing: it is the baseline.
 - **Property sales summary**: returns the summary sentence and the figures of a zone, for the
   next action (send a message, for example).
+  The sentence of the scene action and of the trigger ends with the latest sale of the zone
+  ("Latest sale: 12B RUE DE L EXEMPLE, flat 52 m², 250,000 €, on 31/12/2025."), its number and
+  street included when the file gives them; the "Check now" button leaves it out.
 
 ## Scene examples
 
@@ -115,8 +125,9 @@ to the device in Gladys. No address is shown.
   files (one per commune and year) **only** when it is, kept in `/data`. No quota is published
   for these services; the integration stays far below any reasonable one.
 - **DVF reuse terms**: trying to **re-identify** people (sellers, buyers) is forbidden. The
-  files hold no name; the integration neither keeps nor shows an address, only the type, the
-  surface, the price, the date and a distance.
+  files hold no name and **no personal data is published** by the integration: it keeps and
+  shows the number and street of a sale as Etalab publishes them (never the postcode, the
+  commune, the parcel nor a name), the type, the surface, the price, the date and a distance.
 
 ## Troubleshooting
 

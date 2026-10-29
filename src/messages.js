@@ -186,6 +186,10 @@ const SUMMARY_WORDS = {
     medians: 'median prices',
     none: 'too few sales for a median price',
     waiting: 'the DVF data are not downloaded yet.',
+    latest: 'latest sale',
+    flat: 'flat',
+    home: 'house',
+    on: (date) => `on ${date}`,
   },
   fr: {
     sales: (count) => (count <= 1 ? `${count} vente` : `${formatNumber(count, 'fr')} ventes`),
@@ -195,6 +199,10 @@ const SUMMARY_WORDS = {
     medians: 'prix médians',
     none: 'trop peu de ventes pour un prix médian',
     waiting: 'les données DVF ne sont pas encore téléchargées.',
+    latest: 'dernière vente',
+    flat: 'appartement',
+    home: 'maison',
+    on: (date) => `le ${date}`,
   },
   de: {
     sales: (count) => (count === 1 ? '1 Verkauf' : `${formatNumber(count, 'de')} Verkäufe`),
@@ -204,6 +212,10 @@ const SUMMARY_WORDS = {
     medians: 'Medianpreise',
     none: 'zu wenige Verkäufe für einen Medianpreis',
     waiting: 'die DVF-Daten sind noch nicht geladen.',
+    latest: 'letzter Verkauf',
+    flat: 'Wohnung',
+    home: 'Haus',
+    on: (date) => `am ${date}`,
   },
   es: {
     sales: (count) => (count === 1 ? '1 venta' : `${formatNumber(count, 'es')} ventas`),
@@ -213,6 +225,10 @@ const SUMMARY_WORDS = {
     medians: 'precios medianos',
     none: 'muy pocas ventas para un precio mediano',
     waiting: 'los datos DVF aún no se han descargado.',
+    latest: 'última venta',
+    flat: 'piso',
+    home: 'casa',
+    on: (date) => `el ${date}`,
   },
 };
 
@@ -221,8 +237,10 @@ const SUMMARY_WORDS = {
  * @param {{label: string, radius: number|null}} zone
  * @param {object|null} stats from statsOf, null while nothing is downloaded
  * @param {string} lang
+ * @param {{sale: Array, distance: number|null}|null} latest the latest sale (latestSales), with
+ *   its address when the file gives one; null leaves it out (the "Check now" toast is short)
  */
-export function summary(zone, stats, lang) {
+export function summary(zone, stats, lang, latest = null) {
   const words = SUMMARY_WORDS[lang] ?? SUMMARY_WORDS.fr;
   const place = (where[lang] ?? where.fr)(zone, lang);
   const colon = lang === 'fr' ? ' :' : ':';
@@ -239,7 +257,23 @@ export function summary(zone, stats, lang) {
   }
   const tail = prices.length ? `${words.medians}${colon} ${prices.join(', ')}` : words.none;
   const semicolon = lang === 'fr' ? ' ;' : ';';
-  return `${place}${colon} ${words.sales(current.count)} ${words.period(formatVintage(stats.vintage, lang))}${semicolon} ${tail}.`;
+  const text = `${place}${colon} ${words.sales(current.count)} ${words.period(formatVintage(stats.vintage, lang))}${semicolon} ${tail}.`;
+  if (!latest) {
+    return text;
+  }
+  const [date, kind, surface, , price, , , address] = latest.sale;
+  const what = [kind === 'a' ? words.flat : words.home];
+  if (surface) {
+    what.push(`${formatNumber(surface, lang)} m²`);
+  }
+  const parts = [
+    ...(address ? [address] : []),
+    what.join(' '),
+    formatEuros(price, lang),
+    words.on(formatDate(date, lang)),
+  ];
+  const latestText = `${words.latest}${colon} ${parts.join(', ')}.`;
+  return `${text} ${latestText[0].toUpperCase()}${latestText.slice(1)}`;
 }
 
 /** The summary in the four languages. */

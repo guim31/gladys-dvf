@@ -10,6 +10,16 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- 100 m and 200 m zones around the house, for dense city centres; next to each median of the
+  widget, the number of sales it rests on (still none under 3 sales).
+- The number and street of the sales, when the DVF file gives them, in the widget and at the end
+  of the summary sentence of the scene action and trigger (with the latest sale of the zone);
+  a widget setting hides them. The data saved by 1.0 are downloaded once again to get them.
+- A widget setting for the number of sales shown: 1, 3, 5 or 10 (10 by default, the most Gladys
+  shows in a widget list).
+
 ## [1.0.0] - 2026-10-29
 
 ### Added

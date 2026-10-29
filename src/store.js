@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // Small persistence under /data (the only writable path of the container): the
 // vintage last seen, the sales of each followed commune for that vintage (the
-// compact form of src/dvf.js, no address), and per zone the date of its latest
+// compact form of src/dvf.js: number and street, no name, no parcel), and per zone the date of its latest
 // sale (baseline of the `new_sales` trigger). Losing the file is harmless: the
 // files are downloaded again, and the next vintage then fires no trigger.
 // No position of a house is written.

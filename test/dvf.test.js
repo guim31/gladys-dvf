@@ -76,7 +76,7 @@ test('the recorded Toulouse file: one sale per mutation, dwellings only', () => 
     assert.ok(sale[4] > 0);
   }
   // The first mutation of the file: a flat of 35 m² and its outbuilding.
-  assert.deepEqual(sales[0], ['2025-01-03', 'a', 35, 1, 120000, 43.6009, 1.4411]);
+  assert.deepEqual(sales[0], ['2025-01-03', 'a', 35, 1, 120000, 43.6009, 1.4411, null]);
 });
 
 test('edge cases: several dwellings, exchanges, plots, quoted cells, missing columns', () => {
@@ -128,7 +128,19 @@ test('the zone: radius around the house, distances, windows', () => {
   assert.equal(all.length, sales.length);
   assert.ok(all.every(({ distance }) => distance === null));
   const stats = statsOf(all, '2025-12');
-  assert.deepEqual(stats.current, { count: 225, apartment: 4844, house: null });
-  assert.deepEqual(stats.previous, { count: 175, apartment: 4686, house: null });
+  assert.deepEqual(stats.current, {
+    count: 225,
+    apartment: 4844,
+    house: null,
+    apartmentSales: 197,
+    houseSales: 2,
+  });
+  assert.deepEqual(stats.previous, {
+    count: 175,
+    apartment: 4686,
+    house: null,
+    apartmentSales: 155,
+    houseSales: 1,
+  });
   assert.equal(stats.lastDate, '2025-12-30');
 });
