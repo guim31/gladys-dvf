@@ -1,0 +1,141 @@
+# DVF: ventas inmobiliarias
+
+Trae a Gladys las **ventas inmobiliarias publicadas cerca de su casa** en Francia y los **precios
+medianos por m²** de pisos y casas, según **Demandes de valeurs foncières (DVF)**: las ventas
+registradas por la DGFiP (administración tributaria francesa), geolocalizadas y publicadas como
+datos abiertos por Etalab. Sin cuenta ni clave.
+
+> **Es una información, no una tasación de su vivienda.** DVF solo publica el precio, la fecha,
+> el tipo y la superficie de un bien vendido: no su estado, su planta ni sus obras. Una mediana
+> sobre pocas ventas varía mucho. Integración sin afiliación con la DGFiP ni Etalab.
+>
+> Probada con los ficheros DVF reales (Toulouse, Vigoulet-Auzil, París) y con el falso Gladys del
+> SDK, aún no con una instancia real de Gladys: sus comentarios son bienvenidos.
+
+## Lo que obtiene
+
+- **Un dispositivo «Ventas inmobiliarias»** por zona seguida, con:
+  - el **precio mediano por m²** de **pisos** y **casas** en los **últimos 12 meses publicados**,
+    y en los **12 meses anteriores** (para comparar de un año a otro);
+  - el **número de ventas** de viviendas en ambos periodos;
+  - la **fecha de la última venta publicada** y el **mes hasta el que llegan los datos**.
+- Un **disparador de escena** «Nuevas ventas inmobiliarias publicadas», con su número, en cada
+  nueva publicación DVF.
+- Una **acción de escena** «Resumen de ventas inmobiliarias»: una frase lista para enviar en un
+  mensaje («A 1 km de Maison: 225 ventas en los 12 meses publicados hasta diciembre de 2025;
+  precios medianos: pisos 4866 €/m².»).
+- Un **widget** para el panel: los precios medianos y las **10 últimas ventas** de la zona (tipo,
+  habitaciones, superficie, precio, fecha, distancia a la casa).
+- Un botón **«Comprobar ahora»** en la configuración, que da ese resumen para cada zona.
+
+## Requisitos
+
+- Gladys Assistant **5.3.0** o posterior.
+- Acceso a Internet desde Gladys: la integración lee `files.data.gouv.fr` (los ficheros DVF) y
+  `geo.api.gouv.fr` (el municipio de una ubicación).
+- Una casa **en Francia**, fuera de **Alsacia-Mosela** (Bas-Rhin, Haut-Rhin, Moselle) y
+  **Mayotte**, donde DVF no existe (registro de la propiedad propio).
+- Para la opción por defecto, la **ubicación de su casa** en Gladys (Ajustes, Casas). La
+  integración la solicita al instalarse (permiso «ubicación»). Solo sirve para encontrar los
+  municipios de la zona y la distancia de las ventas; no se guarda ni se escribe en los registros.
+
+## Configuración
+
+### Ajustes
+
+| Ajuste                                 | Qué hace                                                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ubicación                              | **Mi casa en Gladys** (por defecto), **Todas mis casas en Gladys** o **Un municipio (código INSEE)**.                                       |
+| Casa                                   | Vacío (por defecto): cada casa de Gladys con ubicación, un dispositivo por casa. Una casa: solo esa.                                        |
+| Zona alrededor de la casa              | **300 m**, **500 m**, **1 km** (por defecto), **2 km** o **Todo su municipio**. Un círculo puede abarcar varios municipios: se leen todos.  |
+| Código INSEE del municipio             | 5 caracteres, **no es el código postal**: `31555` para Toulouse, `2A004` para Ajaccio.                                                      |
+| Idioma de los nombres de las funciones | Nombres de las funciones de un nuevo dispositivo, idioma de las fechas, del resumen y de las variables del disparador. Francés por defecto. |
+
+Guarde, abra la pestaña **Descubrir** de la integración y añada el dispositivo. La primera
+descarga tarda de unos segundos (municipio pequeño) a un minuto (París).
+
+### París, Lyon, Marsella
+
+DVF se publica allí **por distrito** (arrondissement). Alrededor de una casa, la integración lee
+los distritos que toca la zona; con «Todo su municipio», el distrito de la casa; con el código
+INSEE de la ciudad (`75056`, `69123`, `13055`), todos sus distritos.
+
+### Comprobar: «Comprobar ahora»
+
+El botón vuelve a leer las casas, la zona y los datos, y muestra un resumen por zona. Aparece un
+mensaje de error claro en la parte superior de la configuración si falta algo (sin ubicación,
+código INSEE desconocido, municipio sin DVF, servicio inaccesible).
+
+## Dispositivo
+
+| Función                                    | Valor                                                                             |
+| ------------------------------------------ | --------------------------------------------------------------------------------- |
+| Pisos, €/m² mediano (12 meses)             | Precio mediano por m² de las ventas de un solo piso, últimos 12 meses publicados. |
+| Casas, €/m² mediano (12 meses)             | Lo mismo para las casas.                                                          |
+| Pisos / Casas, €/m² mediano (año anterior) | Las mismas medianas en los 12 meses anteriores.                                   |
+| Ventas (12 meses), Ventas (año anterior)   | Número de ventas de viviendas (pisos y casas) en cada periodo.                    |
+| Última venta publicada                     | Fecha de la venta más reciente de la zona.                                        |
+| Datos publicados hasta                     | El mes hasta el que llega la publicación DVF en curso («diciembre de 2025»).      |
+
+Una mediana solo se publica a partir de **3 ventas**: por debajo, la función queda sin valor.
+Los «últimos 12 meses» son los **de la publicación**, no de hoy: DVF llega meses después de las
+ventas.
+
+## Widget
+
+Añada el widget **Ventas inmobiliarias** al panel. Ajustes: la **zona** (vacío: la primera) y dos
+interruptores para **ocultar los precios medianos** o **las últimas ventas**. Muestra tres
+mosaicos (pisos, casas, número de ventas), después hasta 10 ventas y la fuente con el nombre dado
+al dispositivo en Gladys. No se muestra ninguna dirección.
+
+## Disparador y acción de escena
+
+- **Nuevas ventas inmobiliarias publicadas**: se activa cuando una nueva publicación DVF trae
+  ventas más recientes que la última conocida de la zona. Filtro: la zona (vacío: todas).
+  Variables: número de nuevas ventas, zona, mes de publicación, ventas en 12 meses, medianas de
+  pisos y casas, frase de resumen. La primera publicación vista (o una zona modificada) no activa
+  nada: sirve de referencia.
+- **Resumen de ventas inmobiliarias**: devuelve la frase de resumen y las cifras de una zona,
+  para la acción siguiente (enviar un mensaje, por ejemplo).
+
+## Ejemplos de escenas
+
+- «Cuando se publiquen nuevas ventas cerca de Maison, envíeme el resumen por Telegram.»
+- «El día 1 de cada mes a las 9, envíeme el resumen de las ventas de mi municipio.»
+
+## Datos, licencia y cuotas
+
+- **Fuente**: «Demandes de valeurs foncières géolocalisées», DGFiP y Etalab, bajo la Licence
+  Ouverte 2.0, en `files.data.gouv.fr/geo-dvf`. Cinco años de ventas, actualizados **dos veces
+  al año** (hacia abril y octubre), meses después de las ventas.
+- **Ventas consideradas**: ventas, ventas sobre plano y subastas con al menos un piso o una casa.
+  Se descartan permutas, solares y expropiaciones. El precio por m² solo procede de las ventas de
+  una sola vivienda (anexos incluidos), sin valores atípicos (menos de 200 o más de 50 000 €/m²).
+- **Descargas**: una pequeña página de índice **una vez al día** para ver si ha salido una nueva
+  publicación; los ficheros (uno por municipio y año) **solo** entonces, guardados en `/data`. No
+  hay cuota publicada para estos servicios; la integración se queda muy por debajo.
+- **Condiciones de reutilización de DVF**: está prohibido intentar **reidentificar** a las
+  personas (vendedores, compradores). Los ficheros no contienen nombres; la integración no guarda
+  ni muestra ninguna dirección, solo el tipo, la superficie, el precio, la fecha y una distancia.
+
+## Solución de problemas
+
+| Síntoma                                  | Qué hacer                                                                                          |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| «Ninguna casa de Gladys tiene ubicación» | Sitúe la casa en el mapa en Ajustes → Casas, o elija «Un municipio (código INSEE)».                |
+| «no hay datos DVF en Alsacia-Mosela …»   | DVF no existe en esos departamentos: la integración no puede mostrar nada allí.                    |
+| «files.data.gouv.fr no responde»         | Compruebe el acceso a Internet de Gladys. La integración reintenta cada hora y conserva sus datos. |
+| Una mediana queda vacía                  | Menos de 3 ventas de ese tipo en la zona: amplíela (2 km o todo el municipio).                     |
+| Las ventas tienen meses                  | Es normal: DVF se publica dos veces al año, con varios meses de retraso.                           |
+
+Registros detallados: variable de entorno `LOG_LEVEL=debug`.
+
+## Límites
+
+- Los datos llevan **de 4 a 10 meses de retraso** respecto a las ventas, y una venta puede
+  aparecer solo en una publicación posterior.
+- Una zona de 2 km lee los municipios encontrados en el centro y en 12 puntos del círculo: puede
+  faltar un municipio tocado solo entre dos puntos.
+- Las ventas sin coordenadas en DVF (raras) solo cuentan con «Todo su municipio» o un código
+  INSEE.
+- Los nombres de las funciones se fijan al crear el dispositivo.
