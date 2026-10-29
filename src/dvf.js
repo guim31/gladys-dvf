@@ -12,8 +12,11 @@
 // several rows, its price (`valeur_fonciere`) repeated on each.
 //
 // What is kept of a sale, nothing more (DVF reuse terms: no re-identification,
-// so no address, no parcel, no name — there is none in the files anyway):
-//   [date 'YYYY-MM-DD', kind, surface m² | null, rooms | null, price €, lat | null, lon | null]
+// so no parcel and no name — there is none in the files anyway):
+//   [date 'YYYY-MM-DD', kind, surface m² | null, rooms | null, price €, lat | null, lon | null,
+//    address | null]
+// address: number and street as the file gives them ('23B AV DES COTEAUX'),
+// never the postcode nor the commune; missing in the data saved before 1.1.
 // kind: 'a' one flat, 'm' one house, 'x' several dwellings or several prices
 // (counted as a sale, never in a price per m²).
 // -----------------------------------------------------------------------------
@@ -127,6 +130,16 @@ const number = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+// Number and street of a row ('23B AV DES COTEAUX'), null without a street.
+function addressOf(cell) {
+  const street = cell('adresse_nom_voie').trim();
+  if (!street) {
+    return null;
+  }
+  const numero = `${cell('adresse_numero').trim()}${cell('adresse_suffixe').trim()}`;
+  return numero ? `${numero} ${street}` : street;
+}
+
 // One CSV line. The Etalab files have no quoted field today; quotes are still
 // honoured, in case a street name ever carries a comma.
 function splitLine(line) {
@@ -163,7 +176,7 @@ function splitLine(line) {
 /**
  * The residential sales of one CSV file, in the compact form above.
  * @param {string} csv
- * @returns {Array<[string, string, number|null, number|null, number, number|null, number|null]>}
+ * @returns {Array<[string, string, number|null, number|null, number, number|null, number|null, string|null]>}
  */
 export function parseSales(csv) {
   const lines = String(csv ?? '').split(/\r?\n/);
@@ -202,6 +215,7 @@ export function parseSales(csv) {
         dwellings: new Map(),
         lat: null,
         lon: null,
+        address: null,
       };
       mutations.set(id, mutation);
     }
@@ -216,6 +230,9 @@ export function parseSales(csv) {
         mutation.lat = lat;
         mutation.lon = lon;
       }
+    }
+    if (mutation.address === null) {
+      mutation.address = addressOf(cell);
     }
     const kind = DWELLINGS[cell('type_local')];
     // A shop or an office in the sale: its price is not the one of the home.
@@ -253,6 +270,7 @@ export function parseSales(csv) {
       price,
       mutation.lat,
       mutation.lon,
+      mutation.address,
     ]);
   }
   return sales;
@@ -333,7 +351,16 @@ export function statsOf(zoneSales, vintage) {
         .filter(({ sale }) => sale[1] === kind)
         .map(({ sale }) => pricePerM2(sale))
         .filter((value) => value !== null);
-    return { count: sales.length, apartment: median(prices('a')), house: median(prices('m')) };
+    const apartments = prices('a');
+    const houses = prices('m');
+    // The number of prices behind each median: few sales (a small radius) make a fragile one.
+    return {
+      count: sales.length,
+      apartment: median(apartments),
+      house: median(houses),
+      apartmentSales: apartments.length,
+      houseSales: houses.length,
+    };
   };
   const dates = zoneSales.map(({ sale }) => sale[0]).sort();
   return {

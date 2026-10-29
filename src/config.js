@@ -15,7 +15,7 @@ export const LANGUAGES = ['en', 'fr', 'de', 'es'];
 export const POSITIONS = ['house', 'houses', 'commune'];
 
 // The zone around a house: its whole commune, or a circle (metres).
-export const RADII = ['commune', '300', '500', '1000', '2000'];
+export const RADII = ['commune', '100', '200', '300', '500', '1000', '2000'];
 
 export const DEFAULT_CONFIG = {
   position: 'house',

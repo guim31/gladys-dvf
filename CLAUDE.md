@@ -38,7 +38,7 @@ src/dvf.js                        DVF files: vintage, URLs, CSV parser, windows,
 src/geo.js                        geo.api.gouv.fr: commune at a point, communes of a circle, commune by code
 src/http.js                       GET with timeout and User-Agent (redirects followed)
 src/devices.js                    the Gladys device of a zone (8 features)
-src/widgets.js                    `sales` dashboard widget
+src/widgets.js                    `sales` dashboard widget (addresses, 1 to 10 rows)
 src/messages.js                   texts sent from the container (en, fr, de, es), number and date formats
 src/store.js                      /data/dvf.json
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
@@ -295,5 +295,15 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - **Déclencheur `new_sales`** : ventes plus récentes que la dernière date connue de la zone, au
   changement de millésime ; le premier millésime vu, ou une zone modifiée (communes, rayon), ne fait
   que poser la référence (`zones` dans `/data`).
+- **Adresses (1.1)** : numéro + suffixe + voie (`adresse_numero`, `adresse_suffixe`,
+  `adresse_nom_voie`), 8e champ de la forme compacte, jamais code postal ni commune. Les données
+  de la 1.0 n'en ont pas : `format: 2` (`SALES_FORMAT`) par commune dans `/data`, une commune sans
+  lui est retéléchargée une fois, même millésime (pas de déclencheur). Toulouse ≈ +25 % de JSON.
+- **Widget, nombre de ventes** : le cœur garde **10 lignes** d'une liste `status` et **une** liste
+  par widget (`MAX_STATUS_ITEMS`, `normalizeWidgetContent.js`) ; le `card-list` en garde 8 ou 12 et
+  compte comme composant focal. D'où un `select` 1/3/5/10, et pas « 5 à 50 » (demande du
+  29/10). Pas de champ `number` dans le manifeste (`test/manifest.test.js`).
+- **Rayons 100 et 200 m** : mêmes calculs ; le nombre de prix derrière chaque médiane s'affiche
+  entre parenthèses dans le widget (`apartmentSales`, `houseSales` de `statsOf`).
 - **Heartbeat** : `publishChangedStates` date les valeurs avec le vrai `Date.now()` : le test du
   heartbeat simule aussi `Date` (`t.mock.timers`).

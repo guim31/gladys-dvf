@@ -38,6 +38,8 @@ const logger = createLogger({ name: 'dvf-monitor' });
 
 export const TRIGGER_KEY = 'new_sales';
 export const WIDGET_KEY = 'sales';
+// The compact form of the sales saved in /data: 2 adds the address (1.1).
+export const SALES_FORMAT = 2;
 
 const HOUR = 3600 * 1000;
 export const DEFAULT_TIMINGS = {
@@ -360,8 +362,11 @@ export class Monitor {
 
   async check({ force = false } = {}) {
     const needed = this.neededCommunes();
-    const complete = (vintage) =>
-      needed.every((code) => this.data.communes[code]?.vintage === vintage);
+    // Up to date: the vintage, in the current compact form (1.0 saved no address).
+    const upToDate = (code, vintage) =>
+      this.data.communes[code]?.vintage === vintage &&
+      this.data.communes[code]?.format === SALES_FORMAT;
+    const complete = (vintage) => needed.every((code) => upToDate(code, vintage));
     const fresh =
       this.data.checkedAt !== null && this.now() - this.data.checkedAt < this.timings.checkMs;
     if (!force && fresh && this.data.vintage && complete(this.data.vintage)) {
@@ -385,8 +390,12 @@ export class Monitor {
       // halfway keeps the previous vintage whole, never a mix of two.
       const staged = {};
       for (const code of needed) {
-        if (this.data.communes[code]?.vintage !== vintage) {
-          staged[code] = { vintage, sales: await this.download(vintage, code) };
+        if (!upToDate(code, vintage)) {
+          staged[code] = {
+            vintage,
+            format: SALES_FORMAT,
+            sales: await this.download(vintage, code),
+          };
         }
       }
       if (vintage !== this.data.vintage) {
@@ -613,7 +622,7 @@ export class Monitor {
       sales_12_months: stats.current.count,
       apartment_median: stats.current.apartment,
       house_median: stats.current.house,
-      summary: summary(zone, stats, lang),
+      summary: summary(zone, stats, lang, this.latestOf(zone)),
     };
   }
 
@@ -653,7 +662,7 @@ export class Monitor {
     }
     const stats = this.resultOf(zone)?.stats ?? null;
     const outputs = {
-      summary: summary(zone, stats, this.config.language),
+      summary: summary(zone, stats, this.config.language, this.latestOf(zone)),
       sales: stats?.current.count ?? 0,
     };
     if (stats?.current.apartment != null) {
@@ -663,6 +672,12 @@ export class Monitor {
       outputs.house_median = stats.current.house;
     }
     return outputs;
+  }
+
+  /** The latest one-dwelling sale of a zone, or null. */
+  latestOf(zone) {
+    const result = this.resultOf(zone);
+    return result ? (latestSales(result.sales, 1)[0] ?? null) : null;
   }
 
   /** What the widget shows for a device (or the first zone). */

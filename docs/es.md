@@ -24,8 +24,8 @@ datos abiertos por Etalab. Sin cuenta ni clave.
 - Una **acción de escena** «Resumen de ventas inmobiliarias»: una frase lista para enviar en un
   mensaje («A 1 km de Maison: 225 ventas en los 12 meses publicados hasta diciembre de 2025;
   precios medianos: pisos 4866 €/m².»).
-- Un **widget** para el panel: los precios medianos y las **10 últimas ventas** de la zona (tipo,
-  habitaciones, superficie, precio, fecha, distancia a la casa).
+- Un **widget** para el panel: los precios medianos y las **últimas ventas** de la zona (de 1 a
+  10, 10 por defecto: número y calle, tipo, superficie, precio, fecha, distancia a la casa).
 - Un botón **«Comprobar ahora»** en la configuración, que da ese resumen para cada zona.
 
 ## Requisitos
@@ -43,13 +43,13 @@ datos abiertos por Etalab. Sin cuenta ni clave.
 
 ### Ajustes
 
-| Ajuste                                 | Qué hace                                                                                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ubicación                              | **Mi casa en Gladys** (por defecto), **Todas mis casas en Gladys** o **Un municipio (código INSEE)**.                                       |
-| Casa                                   | Vacío (por defecto): cada casa de Gladys con ubicación, un dispositivo por casa. Una casa: solo esa.                                        |
-| Zona alrededor de la casa              | **300 m**, **500 m**, **1 km** (por defecto), **2 km** o **Todo su municipio**. Un círculo puede abarcar varios municipios: se leen todos.  |
-| Código INSEE del municipio             | 5 caracteres, **no es el código postal**: `31555` para Toulouse, `2A004` para Ajaccio.                                                      |
-| Idioma de los nombres de las funciones | Nombres de las funciones de un nuevo dispositivo, idioma de las fechas, del resumen y de las variables del disparador. Francés por defecto. |
+| Ajuste                                 | Qué hace                                                                                                                                                         |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ubicación                              | **Mi casa en Gladys** (por defecto), **Todas mis casas en Gladys** o **Un municipio (código INSEE)**.                                                            |
+| Casa                                   | Vacío (por defecto): cada casa de Gladys con ubicación, un dispositivo por casa. Una casa: solo esa.                                                             |
+| Zona alrededor de la casa              | **100 m**, **200 m**, **300 m**, **500 m**, **1 km** (por defecto), **2 km** o **Todo su municipio**. Un círculo puede abarcar varios municipios: se leen todos. |
+| Código INSEE del municipio             | 5 caracteres, **no es el código postal**: `31555` para Toulouse, `2A004` para Ajaccio.                                                                           |
+| Idioma de los nombres de las funciones | Nombres de las funciones de un nuevo dispositivo, idioma de las fechas, del resumen y de las variables del disparador. Francés por defecto.                      |
 
 Guarde, abra la pestaña **Descubrir** de la integración y añada el dispositivo. La primera
 descarga tarda de unos segundos (municipio pequeño) a un minuto (París).
@@ -84,9 +84,17 @@ ventas.
 ## Widget
 
 Añada el widget **Ventas inmobiliarias** al panel. Ajustes: la **zona** (vacío: la primera) y dos
-interruptores para **ocultar los precios medianos** o **las últimas ventas**. Muestra tres
-mosaicos (pisos, casas, número de ventas), después hasta 10 ventas y la fuente con el nombre dado
-al dispositivo en Gladys. No se muestra ninguna dirección.
+interruptores para **ocultar los precios medianos**, **las últimas ventas** o **su dirección**, y
+el **número de ventas mostradas** (1, 3, 5 o 10, 10 por defecto: Gladys muestra 10 filas como
+máximo en una lista de widget). Muestra tres mosaicos (pisos, casas, número de ventas; junto a
+cada mediana, entre paréntesis, el número de ventas en que se basa), después las últimas ventas y
+la fuente con el nombre dado al dispositivo en Gladys. Una venta muestra su **número y calle**
+cuando el fichero DVF los da, nunca el código postal, el municipio ni un nombre; si no, su tipo,
+habitaciones y superficie.
+
+Con una zona de **100 m o 200 m**, un centro urbano tiene unas decenas de ventas al año, a menudo
+menos: una mediana basada en 3 a 10 ventas varía mucho de una publicación a otra. Mire el número
+entre paréntesis antes de sacar conclusiones.
 
 ## Disparador y acción de escena
 
@@ -97,6 +105,9 @@ al dispositivo en Gladys. No se muestra ninguna dirección.
   nada: sirve de referencia.
 - **Resumen de ventas inmobiliarias**: devuelve la frase de resumen y las cifras de una zona,
   para la acción siguiente (enviar un mensaje, por ejemplo).
+  La frase de la acción y del disparador termina con la última venta de la zona («Última venta:
+  12B RUE DE L EXEMPLE, piso 52 m², 250.000 €, el 31/12/2025.»), con su número y calle cuando el
+  fichero los da; el botón «Comprobar ahora» no la añade.
 
 ## Ejemplos de escenas
 
@@ -115,8 +126,10 @@ al dispositivo en Gladys. No se muestra ninguna dirección.
   publicación; los ficheros (uno por municipio y año) **solo** entonces, guardados en `/data`. No
   hay cuota publicada para estos servicios; la integración se queda muy por debajo.
 - **Condiciones de reutilización de DVF**: está prohibido intentar **reidentificar** a las
-  personas (vendedores, compradores). Los ficheros no contienen nombres; la integración no guarda
-  ni muestra ninguna dirección, solo el tipo, la superficie, el precio, la fecha y una distancia.
+  personas (vendedores, compradores). Los ficheros no contienen nombres y la integración no publica
+  **ningún dato nominativo**: guarda y muestra el número y la calle de una venta tal como los
+  publica Etalab (nunca el código postal, el municipio, la parcela ni un nombre), el tipo, la
+  superficie, el precio, la fecha y una distancia.
 
 ## Solución de problemas
 

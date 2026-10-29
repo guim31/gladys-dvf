@@ -13,14 +13,15 @@ not yet on a real Gladys instance: feedback welcome.
 
 ## Features
 
-- One device per zone: around a house of Gladys (300 m, 500 m, 1 km, 2 km or its whole commune),
+- One device per zone: around a house of Gladys (100 m, 200 m, 300 m, 500 m, 1 km, 2 km or its whole commune),
   every located house, or a commune by its INSEE code.
 - Features: median price per m² of flats and houses over the last 12 published months and the 12
   months before, number of sales over both, date of the latest sale, month the data reach.
 - Scene trigger `new_sales`: a new DVF release brings sales in the zone, with their count.
 - Scene action `summary`: one sentence on a zone (sales, median prices), to send in a message.
-- Dashboard widget `sales`: median prices and the 10 latest sales (type, rooms, surface, price,
-  date, distance), each block can be hidden. No address is ever shown.
+- Dashboard widget `sales`: median prices (with the number of sales behind each) and the 1 to 10
+  latest sales (number and street when DVF gives them, type, surface, price, date, distance);
+  each block, and the addresses, can be hidden.
 - Four languages (English, French, German, Spanish).
 
 ## Requirements
@@ -43,7 +44,7 @@ tab. Add the **Property sales** widget to a dashboard if you like.
   [`files.data.gouv.fr/geo-dvf`](https://files.data.gouv.fr/geo-dvf/) to find the latest release
   (`2025-12`: data up to December 2025). Only when a new release is out does it download the CSV
   files of the communes of the zone, one per commune and year, keeping a compact form of the
-  residential sales in `/data` (date, type, surface, rooms, price, coordinates; no address).
+  residential sales in `/data` (date, type, surface, rooms, price, coordinates, number and street).
 - The communes of a zone come from [`geo.api.gouv.fr`](https://geo.api.gouv.fr): the commune at
   the house and at 12 points of the circle. Paris, Lyon and Marseille are read by district.
 - Sales kept: sales, off-plan sales and auctions including a flat or a house. The price per m²
@@ -55,8 +56,10 @@ tab. Add the **Property sales** widget to a dashboard if you like.
 
 - DVF is published twice a year, 4 to 10 months after the sales.
 - No DVF in Alsace-Moselle (Bas-Rhin, Haut-Rhin, Moselle) and Mayotte.
-- The DVF reuse terms forbid re-identifying people: the integration shows no address, and so
-  must anything built on it.
+- The DVF reuse terms forbid re-identifying people: the integration shows a sale's number and
+  street as Etalab publishes them, never a name, and anything built on it must not try to find
+  who sold or bought.
+- Gladys shows 10 rows at most in a widget list: the widget cannot show more sales.
 - A median is not a valuation: DVF knows nothing of the condition, floor or works of a property.
 
 ## Development
