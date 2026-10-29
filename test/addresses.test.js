@@ -63,13 +63,15 @@ const ADDRESSED = [
   }),
 ];
 
-/** A world whose 2025 file of Toulouse also holds the sales above. */
-async function addressedWorld(config = {}) {
+/** Fake services whose 2025 file of Toulouse also holds the sales above. */
+function addressedApi() {
   const api = createApi();
   const key = `${VINTAGE}/${TOULOUSE}-2025`;
   api.files[key] = `${fixtureText(`dvf/${TOULOUSE}-2025.csv`)}${ADDRESSED.join('\n')}\n`;
-  return createWorld({ api, config });
+  return api;
 }
+
+const addressedWorld = (config = {}) => createWorld({ api: addressedApi(), config });
 
 test('the parser keeps number, suffix and street; none without a street', () => {
   const sales = parseSales(
@@ -169,7 +171,7 @@ test('data saved by 1.0 (no address) are downloaded again once, then kept', asyn
   }
   writeFileSync(path, JSON.stringify(saved));
 
-  const api = createApi();
+  const api = addressedApi();
   const world = await createWorld({ dir: first.dir, api });
   t.after(() => world.app.stop());
   await world.monitor.idle();
@@ -178,6 +180,18 @@ test('data saved by 1.0 (no address) are downloaded again once, then kept', asyn
   const stored = JSON.parse(readFileSync(path, 'utf8'));
   assert.ok(Object.values(stored.communes).every((commune) => commune.format === 2));
   assert.equal(world.fake.sceneEvents.length, 0, 'same vintage: no trigger');
+
+  // Without a restart: the 1.0 sales already read (cached) give way to the new ones.
+  const { monitor } = world;
+  const zone = monitor.zones[0];
+  for (const commune of Object.values(monitor.data.communes)) {
+    delete commune.format;
+    commune.sales = commune.sales.map((sale) => sale.slice(0, 7));
+  }
+  assert.equal(monitor.latestOf(zone).sale.length, 7);
+  await monitor.run(() => monitor.check());
+  assert.equal(monitor.latestOf(zone).sale.length, 8);
+  assert.equal(monitor.latestOf(zone).sale[7], '12B RUE DE L EXEMPLE');
   const before = api.count(isCsv);
   await world.tick(24);
   assert.equal(api.count(isCsv), before, 'nothing more the next day');

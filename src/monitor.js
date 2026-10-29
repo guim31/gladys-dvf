@@ -470,7 +470,8 @@ export class Monitor {
     }
     const key = JSON.stringify([
       vintage,
-      zone.communes.map((c) => c.code),
+      // The format too: the 1.0 sales downloaded again (same vintage) bring their addresses.
+      zone.communes.map((c) => [c.code, this.data.communes[c.code].format ?? 1]),
       zone.center,
       zone.radius,
     ]);
