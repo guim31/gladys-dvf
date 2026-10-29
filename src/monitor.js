@@ -273,7 +273,8 @@ export class Monitor {
       this.recovered('houses', 'The houses of Gladys can be read again');
     } catch (err) {
       this.failed('houses', `Cannot read the houses of Gladys: ${err.message}`);
-      if (this.zones.length) {
+      // The zones known stay only for the configuration they were found with.
+      if (this.zones.length && this.zonesConfig === JSON.stringify(this.config)) {
         return this.zones;
       }
       throw new ZoneProblem('noHouse');

@@ -52,7 +52,7 @@ test('Paris, Lyon and Marseille are read by district; Alsace-Moselle and Mayotte
   assert.deepEqual(filesOfCommune('69123').slice(0, 2), ['69381', '69382']);
   assert.equal(filesOfCommune('13055').at(-1), '13216');
   assert.deepEqual(filesOfCommune('31555'), ['31555']);
-  for (const code of ['57463', '67482', '68224', '97611']) {
+  for (const code of ['57463', '67482', '68224', '97611', '98718', '98613', '98818']) {
     assert.equal(hasDvf(code), false, code);
   }
   for (const code of ['31555', '2A004', '97411']) {

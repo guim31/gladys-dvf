@@ -58,8 +58,8 @@ export function filesOfCommune(code) {
 
 export const isCityWithDistricts = (code) => code in DISTRICTS;
 
-/** The department of an INSEE code: 3 characters overseas, 2 elsewhere. */
-export const departmentOf = (code) => (code.startsWith('97') ? code.slice(0, 3) : code.slice(0, 2));
+/** The department of an INSEE code: 3 characters overseas (97x, 98x), 2 elsewhere. */
+export const departmentOf = (code) => (/^9[78]/.test(code) ? code.slice(0, 3) : code.slice(0, 2));
 
 export const hasDvf = (code) => !NO_DVF_DEPARTMENTS.includes(departmentOf(code));
 

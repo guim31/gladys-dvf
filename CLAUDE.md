@@ -280,6 +280,8 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - **Téléchargement en bloc** : tous les fichiers d'un millésime sont lus avant d'en remplacer un seul
   (un échec à mi-chemin garde l'ancien millésime entier). Une commune qui avait des ventes et n'a plus
   aucun fichier dans le nouveau millésime = millésime listé avant d'être copié : on réessaie à l'heure.
+  Limite assumée : une commune sans historique (zone neuve, ancien millésime vide) ou un millésime
+  copié à moitié (une année sur deux présente) est accepté tel quel jusqu'au millésime suivant.
 - Sans zone connue (maison sans position, maisons illisibles), rien n'est purgé de `/data`.
 - Limite assumée : la signature d'une zone (communes, rayon) ignore la position exacte de la maison
   (rien de la position dans `/data`) : une maison déplacée dans la même commune garde sa référence.

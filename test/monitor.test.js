@@ -398,3 +398,19 @@ test('the recorded files are real DVF files, anonymised', () => {
   }
   assert.ok(DAY > HOUR);
 });
+
+test('the houses unreadable after a new configuration: the old zones are not kept', async (t) => {
+  const world = await createWorld({ houses: [COUNTRY, HOUSE] });
+  t.after(() => world.app.stop());
+  assert.equal(world.fake.discoveredDevices.length, 2);
+  t.mock.method(world.gladys, 'getHouses', async () => {
+    throw new Error('HTTP 503');
+  });
+  // Same configuration: a short outage keeps the zones.
+  await world.tick(24);
+  assert.equal(world.fake.discoveredDevices.length, 2);
+  await world.fake.configUpdated({ position: 'house', house: 'maison', radius: '1000' });
+  await world.monitor.idle();
+  assert.equal(world.fake.connectionStatus.connected, false);
+  assert.deepEqual(world.fake.discoveredDevices, []);
+});
