@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-29
+
 ### Added
 
 - Property sales published around your home in France, from the open DVF data (DGFiP,
@@ -23,3 +25,6 @@ the notes of the version's GitHub Release.
   distance), each block can be hidden.
 - "Check now" action, clear status messages (no location, unknown commune, Alsace-Moselle and
   Mayotte without DVF, service unreachable), four languages (en, fr, de, es).
+
+[Unreleased]: https://github.com/guim31/gladys-dvf/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-dvf/releases/tag/v1.0.0
