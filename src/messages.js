@@ -179,7 +179,7 @@ const where = {
 
 const SUMMARY_WORDS = {
   en: {
-    sales: (count) => (count === 1 ? '1 sale' : `${count} sales`),
+    sales: (count) => (count === 1 ? '1 sale' : `${formatNumber(count, 'en')} sales`),
     period: (until) => `in the 12 months published up to ${until}`,
     apartment: 'flats',
     house: 'houses',
@@ -188,7 +188,7 @@ const SUMMARY_WORDS = {
     waiting: 'the DVF data are not downloaded yet.',
   },
   fr: {
-    sales: (count) => (count <= 1 ? `${count} vente` : `${count} ventes`),
+    sales: (count) => (count <= 1 ? `${count} vente` : `${formatNumber(count, 'fr')} ventes`),
     period: (until) => `sur les 12 mois publiés jusqu'à ${until}`,
     apartment: 'appartements',
     house: 'maisons',
@@ -197,7 +197,7 @@ const SUMMARY_WORDS = {
     waiting: 'les données DVF ne sont pas encore téléchargées.',
   },
   de: {
-    sales: (count) => (count === 1 ? '1 Verkauf' : `${count} Verkäufe`),
+    sales: (count) => (count === 1 ? '1 Verkauf' : `${formatNumber(count, 'de')} Verkäufe`),
     period: (until) => `in den 12 veröffentlichten Monaten bis ${until}`,
     apartment: 'Wohnungen',
     house: 'Häuser',
@@ -206,7 +206,7 @@ const SUMMARY_WORDS = {
     waiting: 'die DVF-Daten sind noch nicht geladen.',
   },
   es: {
-    sales: (count) => (count === 1 ? '1 venta' : `${count} ventas`),
+    sales: (count) => (count === 1 ? '1 venta' : `${formatNumber(count, 'es')} ventas`),
     period: (until) => `en los 12 meses publicados hasta ${until}`,
     apartment: 'pisos',
     house: 'casas',
