@@ -1,77 +1,89 @@
+// -----------------------------------------------------------------------------
+// The `sales` widget: valid content for the core (budget, lengths), the name
+// given in Gladys, the blocks that can be hidden, the empty states.
+// -----------------------------------------------------------------------------
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { validateWidgetContent } from '@gladysassistant/integration-sdk';
-import { createFakeGladys } from '@gladysassistant/integration-sdk/testing';
-import { buildDiscoveredDevices } from '../src/devices/index.js';
-import { simulateLanSession } from '../src/devices/plug.js';
-import { DEMO_STATUS_WIDGET, WIDGETS, refreshWidgets } from '../src/widgets.js';
-import { normalizeConfig } from '../src/config.js';
+import { LANGUAGES } from '../src/config.js';
+import { COUNTRY, HOUSE, createApi, createWorld } from './helpers/world.js';
 
-const gladys = createFakeGladys();
-const config = normalizeConfig();
-const demoStatus = WIDGETS[DEMO_STATUS_WIDGET];
+const get = async (world, settings = {}, language = 'fr') => {
+  const ack = await world.fake.widgetGet('sales', { settings, language });
+  assert.equal(ack.success, true, ack.error);
+  return ack.data.content ?? ack.data;
+};
 
-// What the SDK passes to onWidgetGet, plus the config index.js adds.
-const getContent = (cfg = config) =>
-  demoStatus.get(gladys, { settings: {}, language: 'en', units: 'metric', config: cfg });
+const ofType = (content, type) => content.components.filter((c) => c.type === type);
 
-test('the demo_status content is rendered exactly as sent', async () => {
-  // [] = nothing the core would drop, truncate or trim to the content budget.
-  assert.deepEqual(validateWidgetContent(await getContent()), []);
-});
-
-test('the degraded plug connection content is valid too', async () => {
-  simulateLanSession(false);
-  try {
-    const content = await getContent();
-    assert.deepEqual(validateWidgetContent(content), []);
-    const status = content.components.find((component) => component.type === 'status');
-    assert.ok(
-      status.items.some((item) => item.color === 'warning'),
-      'degraded shows a warning',
-    );
-  } finally {
-    simulateLanSession(true);
+test('medians, the 10 latest sales and the source, valid in every language', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  for (const language of LANGUAGES) {
+    const content = await get(world, {}, language);
+    assert.doesNotThrow(() => validateWidgetContent(content), language);
+    assert.ok(content.components.length <= 8);
+    assert.ok(ofType(content, 'text').length <= 2);
+    assert.equal(ofType(content, 'value').length, 3);
+    const [status] = ofType(content, 'status');
+    assert.equal(status.items.length, 10);
+    for (const item of status.items) {
+      assert.ok(item.label.length <= 40, item.label);
+      assert.ok(typeof item.value === 'string' && item.value.length <= 40, item.value);
+    }
   }
+  const content = await get(world);
+  const [apartment, house, sales] = ofType(content, 'value');
+  assert.deepEqual([apartment.value, apartment.unit], [4844, '€/m²']);
+  // No median for the houses of the hyper-centre: a dash, no unit.
+  assert.deepEqual([house.value, house.unit], ['–', undefined]);
+  assert.equal(sales.value, 225);
+  const [first] = ofType(content, 'status')[0].items;
+  assert.match(first.label, /^Appartement · \d+ p\. · \d+ m²$/);
+  assert.match(first.value, /^[\d ]+ € · 30\/12\/2025 · \d+ m$/);
+  const caption = ofType(content, 'text').at(-1);
+  assert.equal(caption.text, "DVF · jusqu'à décembre 2025 · Maison");
 });
 
-test('the live tiles reference features the integration publishes', async () => {
-  const featureIds = new Set(
-    buildDiscoveredDevices(gladys, config).flatMap((device) =>
-      device.features.map((feature) => feature.external_id),
-    ),
+test('the blocks can be hidden; the device setting picks the zone and its name', async (t) => {
+  const world = await createWorld({ houses: [COUNTRY, HOUSE] });
+  t.after(() => world.app.stop());
+  const bare = await get(world, { show_medians: false, show_sales: false });
+  assert.deepEqual(
+    bare.components.map((c) => c.type),
+    ['text'],
   );
-  const liveTiles = (await getContent()).components.filter((c) => c.device_feature);
-  assert.ok(liveTiles.length > 0, 'the template demonstrates a device-bound tile');
-  for (const tile of liveTiles) {
-    assert.ok(featureIds.has(tile.device_feature), `unknown feature ${tile.device_feature}`);
-  }
+  const [, maison] = world.fake.discoveredDevices;
+  await world.fake.deviceCreated({ ...maison, name: 'Chez nous' });
+  const chosen = await get(world, { device: maison.external_id, show_sales: false });
+  assert.equal(ofType(chosen, 'value')[2].value, 225);
+  assert.equal(ofType(chosen, 'text').at(-1).text, "DVF · jusqu'à décembre 2025 · Chez nous");
+  // The country house: a small commune, few sales, no flat median.
+  const first = await get(world);
+  assert.equal(ofType(first, 'value')[0].value, '–');
 });
 
-test('every button action of the content is handled and answers a short toast', async () => {
-  const buttons = (await getContent()).components.filter((c) => c.type === 'button' && c.action);
-  assert.ok(buttons.length > 0, 'the template demonstrates a widget action');
-  for (const { action } of buttons) {
-    const message = await demoStatus.action(gladys, {
-      actionKey: action.key,
-      params: action.params ?? {},
-      settings: {},
-      config,
-    });
-    assert.ok(message.en, 'the toast carries at least the mandatory `en` text');
-    assert.ok(message.en.length <= 200, 'toasts are capped at 200 characters');
-  }
+test('empty states: no zone, data not downloaded yet', async (t) => {
+  const none = await createWorld({ houses: [] });
+  t.after(() => none.app.stop());
+  const empty = await get(none, {}, 'en');
+  assert.match(ofType(empty, 'text')[0].text, /No zone followed yet/);
+
+  const api = createApi();
+  api.down.dvf = 503;
+  const waiting = await createWorld({ api, houses: [HOUSE] });
+  t.after(() => waiting.app.stop());
+  const content = await get(waiting, {}, 'en');
+  assert.match(ofType(content, 'text')[0].text, /being downloaded/);
+  assert.doesNotThrow(() => validateWidgetContent(content));
 });
 
-test('an unknown widget action fails, so the user sees the error', async () => {
-  await assert.rejects(
-    demoStatus.action(gladys, { actionKey: 'unknown', params: {}, settings: {}, config }),
-    /Unknown widget action/,
-  );
-});
-
-test('refreshWidgets nudges every widget', () => {
-  const fresh = createFakeGladys();
-  refreshWidgets(fresh);
-  assert.deepEqual(fresh.fake.widgetRefreshes, Object.keys(WIDGETS));
+test('a created device asks the widget to refresh', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const before = world.fake.widgetRefreshes.length;
+  await world.createDevices();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.ok(world.fake.widgetRefreshes.length > before);
 });

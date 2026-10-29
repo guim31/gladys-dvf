@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-dvf",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Property sales near your home in France and median prices per m², from the open DVF data, in Gladys Assistant.",
   "type": "module",
   "main": "index.js",
   "scripts": {

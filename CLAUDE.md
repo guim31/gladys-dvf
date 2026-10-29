@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/monitor.test.js          # one file
+node --test --test-name-pattern "vintage" # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,21 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        handlers → monitor, `read_now` action, `summary` scene action, widget
+src/monitor.js                    zones, daily vintage check (own hourly timer), states, `new_sales` trigger
+src/dvf.js                        DVF files: vintage, URLs, CSV parser, windows, medians, distances
+src/geo.js                        geo.api.gouv.fr: commune at a point, communes of a circle, commune by code
+src/http.js                       GET with timeout and User-Agent (redirects followed)
+src/devices.js                    the Gladys device of a zone (8 features)
+src/widgets.js                    `sales` dashboard widget
+src/messages.js                   texts sent from the container (en, fr, de, es), number and date formats
+src/store.js                      /data/dvf.json
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+gladys-assistant-integration.json manifest: config, action, trigger, scene action, widget
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys, same sections
+test/helpers/world.js             fake Gladys + fake files.data.gouv.fr and geo.api.gouv.fr
+test/fixtures/dvf/                real DVF files (anonymised) and the geo-dvf index
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +75,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in four languages (English, French, German, Spanish):
+  action messages, manifest texts, feature names, widget texts and
+  `docs/{en,fr,de,es}.md`, kept in sync with the same sections.
+  `test/i18n.test.js` enforces it.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -250,3 +257,43 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Propre à cette intégration (DVF, 29/10/2026)
+
+- **Source** : fichiers géolocalisés d'Etalab, sans clé. Index `https://files.data.gouv.fr/geo-dvf/`
+  (un dossier par millésime, `2025-12/`, plus `latest/`) ; fichiers
+  `…/geo-dvf/<millésime>/csv/<année>/communes/<dép>/<INSEE>.csv`, 302 vers un stockage OVH (suivie).
+  On lit le **dossier daté**, pas `latest/`, pour que tous les fichiers d'une lecture soient du même
+  millésime. 404 = aucune vente cette année-là dans la commune (petites communes). Pas de guillemets
+  dans les fichiers (vérifié le 29/10/2026), le parseur les accepte quand même. API DVF du Cerema non
+  utilisée : les fichiers suffisent et restent sans clé.
+- **Millésime** `AAAA-MM` = dernier mois couvert (2025-12 publié en mai 2026). Fenêtres : les
+  12 derniers mois **du millésime** et les 12 d'avant, bornes `]début, fin]`. Années à lire :
+  `yearsOf` (2 ou 3 fichiers par commune).
+- **Une vente = un `id_mutation`** sur plusieurs lignes (lots, parcelles, dépendances), prix répété.
+  Retenues : `Vente`, `Vente en l'état futur d'achèvement`, `Adjudication` avec au moins un
+  appartement ou une maison. Prix au m² : un seul logement (dédoublonné par type, surface, pièces :
+  un local apparaît une fois par parcelle), un seul prix, surface ≥ 9 m², 200 à 50 000 €/m² ;
+  médiane à partir de 3 ventes, sinon pas d'état. Plusieurs logements ou prix : `x`, compté seulement.
+  Une vente avec un `Local industriel. commercial ou assimilé` sort aussi du prix au m² (`x`) : son prix
+  n'est pas celui du logement (12 ventes sur 225 dans les fixtures de Toulouse).
+- **Téléchargement en bloc** : tous les fichiers d'un millésime sont lus avant d'en remplacer un seul
+  (un échec à mi-chemin garde l'ancien millésime entier). Une commune qui avait des ventes et n'a plus
+  aucun fichier dans le nouveau millésime = millésime listé avant d'être copié : on réessaie à l'heure.
+  Limite assumée : une commune sans historique (zone neuve, ancien millésime vide) ou un millésime
+  copié à moitié (une année sur deux présente) est accepté tel quel jusqu'au millésime suivant.
+- Sans zone connue (maison sans position, maisons illisibles), rien n'est purgé de `/data`.
+- Limite assumée : la signature d'une zone (communes, rayon) ignore la position exacte de la maison
+  (rien de la position dans `/data`) : une maison déplacée dans la même commune garde sa référence.
+- **Paris, Lyon, Marseille** : fichiers par arrondissement seulement (75101…75120, 69381…69389,
+  13201…13216). `geo.api.gouv.fr/communes?lat&lon` rend 75056 : relancer avec
+  `type=arrondissement-municipal`. **Pas de DVF** en 57, 67, 68 et 976 (404 partout).
+- **Mémoire** : Toulouse ≈ 4 Mo de CSV par an, 15 000 ventes compactes ≈ 0,8 Mo de JSON ;
+  Paris (20 arrondissements × 2 ans) ≈ 3 Mo dans `/data`. Les fichiers sont lus un par un.
+- **Zone** : une par maison (`house-<selector>`) ou par code INSEE ; cercle = communes au centre et
+  en 12 points (cache en mémoire seulement : aucune position dans `/data` ni dans les journaux).
+- **Déclencheur `new_sales`** : ventes plus récentes que la dernière date connue de la zone, au
+  changement de millésime ; le premier millésime vu, ou une zone modifiée (communes, rayon), ne fait
+  que poser la référence (`zones` dans `/data`).
+- **Heartbeat** : `publishChangedStates` date les valeurs avec le vrai `Date.now()` : le test du
+  heartbeat simule aussi `Date` (`t.mock.timers`).

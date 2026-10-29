@@ -1,147 +1,438 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "DVF",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Property sales near your home in France and median prices per m², from open DVF data.",
+    "fr": "Ventes immobilières autour de chez vous et prix médians au m², d'après les données ouvertes DVF.",
+    "de": "Immobilienverkäufe nahe deinem Zuhause in Frankreich und Medianpreise pro m², aus offenen DVF-Daten.",
+    "es": "Ventas inmobiliarias cerca de su casa en Francia y precios medianos por m², según los datos DVF."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-dvf:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-dvf/main/cover.png",
+  "categories": ["services"],
+  "countries": ["FR"],
+  "keywords": [
+    "DVF",
+    "immobilier",
+    "prix au m²",
+    "valeurs foncières",
+    "real estate",
+    "property prices",
+    "Etalab",
+    "DGFiP"
+  ],
+  "transports": ["cloud"],
+  "location": true,
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your zone",
+        "fr": "Votre zone",
+        "de": "Deine Zone",
+        "es": "Su zona"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Choose where the sales are read: around your house in Gladys (default) or in a commune by its INSEE code. Save, then create the device in the Discover tab. The data are checked once a day.",
+        "fr": "Choisissez où lire les ventes : autour de votre maison dans Gladys (par défaut) ou dans une commune par son code INSEE. Enregistrez, puis créez l'appareil dans l'onglet Découverte. Les données sont vérifiées une fois par jour.",
+        "de": "Wähle, wo die Verkäufe gelesen werden: rund um dein Haus in Gladys (Standard) oder in einer Gemeinde per INSEE-Code. Speichere und lege dann das Gerät im Tab „Entdecken“ an. Die Daten werden einmal am Tag geprüft.",
+        "es": "Elija dónde se leen las ventas: alrededor de su casa en Gladys (por defecto) o en un municipio por su código INSEE. Guarde y cree el dispositivo en la pestaña Descubrir. Los datos se comprueban una vez al día."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-dvf/blob/main/docs/fr.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide d'installation",
+            "de": "Installationsanleitung",
+            "es": "Guía de instalación"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "about",
+      "type": "section",
+      "label": {
+        "en": "Sources and limits",
+        "fr": "Sources et limites",
+        "de": "Quellen und Grenzen",
+        "es": "Fuentes y límites"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
       "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+        "en": "Demandes de valeurs foncières (DVF), DGFiP, geolocated by Etalab, read without an account. Published twice a year, months after the sale; none in Alsace-Moselle and Mayotte. Not affiliated with the DGFiP nor Etalab.",
+        "fr": "Demandes de valeurs foncières (DVF), DGFiP, géolocalisées par Etalab, lues sans compte. Publiées deux fois par an, des mois après la vente ; rien en Alsace-Moselle ni à Mayotte. Non affiliée à la DGFiP ni à Etalab.",
+        "de": "Demandes de valeurs foncières (DVF) der DGFiP, von Etalab geolokalisiert, ohne Konto gelesen. Zweimal im Jahr veröffentlicht, Monate nach dem Verkauf; nichts im Elsass, in der Moselle und auf Mayotte. Nicht mit DGFiP oder Etalab verbunden.",
+        "es": "Demandes de valeurs foncières (DVF) de la DGFiP, geolocalizadas por Etalab, leídas sin cuenta. Publicadas dos veces al año, meses después de la venta; nada en Alsacia-Mosela ni en Mayotte. Sin afiliación con la DGFiP ni Etalab."
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+      "links": [
+        {
+          "url": "https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres-geolocalisees/",
+          "label": {
+            "en": "DVF on data.gouv.fr",
+            "fr": "DVF sur data.gouv.fr",
+            "de": "DVF auf data.gouv.fr",
+            "es": "DVF en data.gouv.fr"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "position",
+      "type": "select",
+      "label": {
+        "en": "Location",
+        "fr": "Position",
+        "de": "Standort",
+        "es": "Ubicación"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "My house: the house chosen below (empty: every house). All my houses: every house of Gladys that has a location, one device each. Commune: the INSEE code below.",
+        "fr": "Ma maison : la maison choisie ci-dessous (vide : toutes). Toutes mes maisons : chaque maison de Gladys qui a une position, un appareil chacune. Commune : le code INSEE ci-dessous.",
+        "de": "Mein Haus: das unten gewählte Haus (leer: alle). Alle meine Häuser: jedes Haus in Gladys mit Standort, je ein Gerät. Gemeinde: der INSEE-Code unten.",
+        "es": "Mi casa: la casa elegida abajo (vacío: todas). Todas mis casas: cada casa de Gladys con ubicación, un dispositivo por casa. Municipio: el código INSEE de abajo."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "house",
+      "options": [
+        {
+          "value": "house",
+          "label": {
+            "en": "My house in Gladys",
+            "fr": "Ma maison dans Gladys",
+            "de": "Mein Haus in Gladys",
+            "es": "Mi casa en Gladys"
+          }
+        },
+        {
+          "value": "houses",
+          "label": {
+            "en": "All my houses in Gladys",
+            "fr": "Toutes mes maisons dans Gladys",
+            "de": "Alle meine Häuser in Gladys",
+            "es": "Todas mis casas en Gladys"
+          }
+        },
+        {
+          "value": "commune",
+          "label": {
+            "en": "A commune (INSEE code)",
+            "fr": "Une commune (code INSEE)",
+            "de": "Eine Gemeinde (INSEE-Code)",
+            "es": "Un municipio (código INSEE)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "house",
+      "type": "select",
+      "source": "houses",
+      "label": {
+        "en": "House",
+        "fr": "Maison",
+        "de": "Haus",
+        "es": "Casa"
+      },
+      "description": {
+        "en": "Used when Location is \"My house in Gladys\". Empty: every house of Gladys that has a location. To go back to every house, choose \"All my houses in Gladys\" above.",
+        "fr": "Utilisée quand Position vaut « Ma maison dans Gladys ». Vide : toutes les maisons de Gladys qui ont une position. Pour revenir à toutes les maisons, choisissez « Toutes mes maisons dans Gladys » plus haut.",
+        "de": "Gilt, wenn Standort „Mein Haus in Gladys“ ist. Leer: alle Häuser in Gladys mit Standort. Um wieder alle Häuser zu verfolgen, wähle oben „Alle meine Häuser in Gladys“.",
+        "es": "Se usa cuando Ubicación es «Mi casa en Gladys». Vacío: todas las casas de Gladys con ubicación. Para volver a todas las casas, elija «Todas mis casas en Gladys» arriba."
+      },
+      "required": false
+    },
+    {
+      "key": "radius",
+      "type": "select",
+      "label": {
+        "en": "Zone around the house",
+        "fr": "Zone autour de la maison",
+        "de": "Zone um das Haus",
+        "es": "Zona alrededor de la casa"
+      },
+      "description": {
+        "en": "The sales within this distance of the house (its location in Gladys), or every sale of its commune.",
+        "fr": "Les ventes à cette distance de la maison (sa position dans Gladys) au plus, ou toutes celles de sa commune.",
+        "de": "Die Verkäufe höchstens in dieser Entfernung vom Haus (sein Standort in Gladys) oder alle seiner Gemeinde.",
+        "es": "Las ventas a esta distancia de la casa (su ubicación en Gladys) como máximo, o todas las de su municipio."
+      },
+      "required": false,
+      "default": "1000",
+      "options": [
+        {
+          "value": "commune",
+          "label": {
+            "en": "Its whole commune",
+            "fr": "Toute sa commune",
+            "de": "Seine ganze Gemeinde",
+            "es": "Todo su municipio"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "300 m",
+            "fr": "300 m",
+            "de": "300 m",
+            "es": "300 m"
+          }
+        },
+        {
+          "value": "500",
+          "label": {
+            "en": "500 m",
+            "fr": "500 m",
+            "de": "500 m",
+            "es": "500 m"
+          }
+        },
+        {
+          "value": "1000",
+          "label": {
+            "en": "1 km",
+            "fr": "1 km",
+            "de": "1 km",
+            "es": "1 km"
+          }
+        },
+        {
+          "value": "2000",
+          "label": {
+            "en": "2 km",
+            "fr": "2 km",
+            "de": "2 km",
+            "es": "2 km"
+          }
+        }
+      ]
+    },
+    {
+      "key": "commune",
+      "type": "string",
+      "label": {
+        "en": "INSEE code of the commune",
+        "fr": "Code INSEE de la commune",
+        "de": "INSEE-Code der Gemeinde",
+        "es": "Código INSEE del municipio"
+      },
+      "description": {
+        "en": "5 characters, not the postcode: 31555 for Toulouse, 2A004 for Ajaccio. Used when Location is \"A commune\".",
+        "fr": "5 caractères, pas le code postal : 31555 pour Toulouse, 2A004 pour Ajaccio. Utilisé quand Position vaut « Une commune ».",
+        "de": "5 Zeichen, nicht die Postleitzahl: 31555 für Toulouse, 2A004 für Ajaccio. Gilt, wenn Standort „Eine Gemeinde“ ist.",
+        "es": "5 caracteres, no el código postal: 31555 para Toulouse, 2A004 para Ajaccio. Se usa cuando Ubicación es «Un municipio»."
+      },
+      "placeholder": {
+        "en": "e.g. 31555",
+        "fr": "ex. 31555",
+        "de": "z. B. 31555",
+        "es": "p. ej. 31555"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités",
+        "de": "Sprache der Funktionsnamen",
+        "es": "Idioma de los nombres de las funciones"
+      },
+      "description": {
+        "en": "Names given to the features of a new device, and language of its texts (dates, summary, trigger variables).",
+        "fr": "Noms donnés aux fonctionnalités d'un nouvel appareil, et langue de ses textes (dates, résumé, variables du déclencheur).",
+        "de": "Namen der Funktionen eines neuen Geräts und Sprache seiner Texte (Daten, Zusammenfassung, Variablen des Auslösers).",
+        "es": "Nombres de las funciones de un nuevo dispositivo e idioma de sus textos (fechas, resumen, variables del disparador)."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "read_now",
+      "label": {
+        "en": "Check now",
+        "fr": "Vérifier maintenant",
+        "de": "Jetzt prüfen",
+        "es": "Comprobar ahora"
+      },
+      "description": {
+        "en": "Reads the zone and the DVF data again, and gives a summary of each zone, to check the configuration.",
+        "fr": "Relit la zone et les données DVF, et donne un résumé de chaque zone, pour vérifier la configuration.",
+        "de": "Liest Zone und DVF-Daten erneut und gibt eine Zusammenfassung jeder Zone, um die Konfiguration zu prüfen.",
+        "es": "Vuelve a leer la zona y los datos DVF y da un resumen de cada zona, para comprobar la configuración."
+      },
+      "timeout_seconds": 120
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "new_sales",
+      "label": {
+        "en": "New property sales published",
+        "fr": "Nouvelles ventes immobilières publiées",
+        "de": "Neue Immobilienverkäufe veröffentlicht",
+        "es": "Nuevas ventas inmobiliarias publicadas"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A new DVF release (twice a year) brings sales in the zone that were not published before.",
+        "fr": "Une nouvelle publication DVF (deux fois par an) apporte des ventes de la zone pas encore publiées.",
+        "de": "Eine neue DVF-Veröffentlichung (zweimal im Jahr) bringt bisher unveröffentlichte Verkäufe der Zone.",
+        "es": "Una nueva publicación DVF (dos veces al año) trae ventas de la zona aún no publicadas."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "label": {
+            "en": "Zone",
+            "fr": "Zone",
+            "de": "Zone",
+            "es": "Zona"
+          },
+          "description": {
+            "en": "Empty: every zone.",
+            "fr": "Vide : toutes les zones.",
+            "de": "Leer: alle Zonen.",
+            "es": "Vacío: todas las zonas."
+          },
+          "required": false
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "count",
+          "type": "number",
+          "label": {
+            "en": "New sales",
+            "fr": "Nouvelles ventes",
+            "de": "Neue Verkäufe",
+            "es": "Nuevas ventas"
+          }
+        },
+        {
+          "key": "zone",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Zone",
+            "fr": "Zone",
+            "de": "Zone",
+            "es": "Zona"
+          }
+        },
+        {
+          "key": "vintage",
+          "type": "string",
+          "label": {
+            "en": "Data published up to",
+            "fr": "Données publiées jusqu'à",
+            "de": "Daten veröffentlicht bis",
+            "es": "Datos publicados hasta"
+          }
+        },
+        {
+          "key": "sales_12_months",
+          "type": "number",
+          "label": {
+            "en": "Sales over 12 months",
+            "fr": "Ventes sur 12 mois",
+            "de": "Verkäufe in 12 Monaten",
+            "es": "Ventas en 12 meses"
+          }
+        },
+        {
+          "key": "apartment_median",
+          "type": "number",
+          "label": {
+            "en": "Flats, median €/m²",
+            "fr": "Appartements, €/m² médian",
+            "de": "Wohnungen, Median €/m²",
+            "es": "Pisos, €/m² mediano"
+          }
+        },
+        {
+          "key": "house_median",
+          "type": "number",
+          "label": {
+            "en": "Houses, median €/m²",
+            "fr": "Maisons, €/m² médian",
+            "de": "Häuser, Median €/m²",
+            "es": "Casas, €/m² mediano"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary sentence",
+            "fr": "Phrase de résumé",
+            "de": "Zusammenfassender Satz",
+            "es": "Frase de resumen"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "summary",
+      "label": {
+        "en": "Property sales summary",
+        "fr": "Résumé des ventes immobilières",
+        "de": "Zusammenfassung der Immobilienverkäufe",
+        "es": "Resumen de ventas inmobiliarias"
+      },
       "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+        "en": "One sentence on a zone: sales over 12 months and median prices, to send in a message.",
+        "fr": "Une phrase sur une zone : ventes sur 12 mois et prix médians, à envoyer dans un message.",
+        "de": "Ein Satz zu einer Zone: Verkäufe in 12 Monaten und Medianpreise, um ihn in einer Nachricht zu senden.",
+        "es": "Una frase sobre una zona: ventas en 12 meses y precios medianos, para enviar en un mensaje."
       },
       "timeout_seconds": 15,
       "fields": [
@@ -149,29 +440,125 @@
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "label": {
+            "en": "Zone",
+            "fr": "Zone",
+            "de": "Zone",
+            "es": "Zona"
+          },
+          "description": {
+            "en": "Empty: the first zone.",
+            "fr": "Vide : la première zone.",
+            "de": "Leer: die erste Zone.",
+            "es": "Vacío: la primera zona."
+          },
+          "required": false
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary sentence",
+            "fr": "Phrase de résumé",
+            "de": "Zusammenfassender Satz",
+            "es": "Frase de resumen"
+          }
+        },
+        {
+          "key": "sales",
+          "type": "number",
+          "label": {
+            "en": "Sales over 12 months",
+            "fr": "Ventes sur 12 mois",
+            "de": "Verkäufe in 12 Monaten",
+            "es": "Ventas en 12 meses"
+          }
+        },
+        {
+          "key": "apartment_median",
+          "type": "number",
+          "label": {
+            "en": "Flats, median €/m²",
+            "fr": "Appartements, €/m² médian",
+            "de": "Wohnungen, Median €/m²",
+            "es": "Pisos, €/m² mediano"
+          }
+        },
+        {
+          "key": "house_median",
+          "type": "number",
+          "label": {
+            "en": "Houses, median €/m²",
+            "fr": "Maisons, €/m² médian",
+            "de": "Häuser, Median €/m²",
+            "es": "Casas, €/m² mediano"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "sales",
+      "label": {
+        "en": "Property sales",
+        "fr": "Ventes immobilières",
+        "de": "Immobilienverkäufe",
+        "es": "Ventas inmobiliarias"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Median prices per m² and the latest sales published around your home.",
+        "fr": "Prix médians au m² et dernières ventes publiées autour de chez vous.",
+        "de": "Medianpreise pro m² und die zuletzt veröffentlichten Verkäufe rund um dein Zuhause.",
+        "es": "Precios medianos por m² y últimas ventas publicadas cerca de su casa."
+      },
+      "icon": "home",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Zone",
+            "fr": "Zone",
+            "de": "Zone",
+            "es": "Zona"
+          },
+          "description": {
+            "en": "Empty: the first zone.",
+            "fr": "Vide : la première zone.",
+            "de": "Leer: die erste Zone.",
+            "es": "Vacío: la primera zona."
+          },
+          "required": false
+        },
+        {
+          "key": "show_medians",
+          "type": "boolean",
+          "label": {
+            "en": "Show the median prices",
+            "fr": "Afficher les prix médians",
+            "de": "Medianpreise anzeigen",
+            "es": "Mostrar los precios medianos"
+          },
+          "required": false,
+          "default": true
+        },
+        {
+          "key": "show_sales",
+          "type": "boolean",
+          "label": {
+            "en": "Show the latest sales",
+            "fr": "Afficher les dernières ventes",
+            "de": "Letzte Verkäufe anzeigen",
+            "es": "Mostrar las últimas ventas"
+          },
+          "required": false,
+          "default": true
+        }
+      ]
     }
   ]
 }

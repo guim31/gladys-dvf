@@ -1,45 +1,57 @@
 // -----------------------------------------------------------------------------
-// Integration configuration.
-//
-// The configuration is filled in by the user in Gladys, from the `config_schema`
-// declared in `gladys-assistant-integration.json`. The SDK fetches it for you
-// (`gladys.getConfig()`) and notifies you of every change through
-// `gladys.onConfigUpdated()`.
-//
-// This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// Integration configuration: defaults (they mirror the `default` values of the
+// manifest `config_schema`, see test/manifest.test.js) and normalization, so
+// the rest of the code never deals with strings, blanks or `undefined`.
 // -----------------------------------------------------------------------------
 
-// Defaults: they MUST stay consistent with the `default` values declared in the
-// `config_schema` of the manifest.
+export const LANGUAGES = ['en', 'fr', 'de', 'es'];
+
+// Where the sales are read: around a house of Gladys, around every house of
+// Gladys, or in a commune given by its INSEE code.
+//
+// `houses` exists because Gladys (5.2.1) refuses to save an emptied
+// `source: "houses"` select: once a house is chosen, the House field can no
+// longer be set back to empty ("every house").
+export const POSITIONS = ['house', 'houses', 'commune'];
+
+// The zone around a house: its whole commune, or a circle (metres).
+export const RADII = ['commune', '300', '500', '1000', '2000'];
+
 export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  // Seconds between two reads of the polled sensors. Gladys polls at most once
-  // a minute: slower intervals are applied by skipping polls (see
-  // createPoller in src/devices/index.js).
-  poll_frequency: 300,
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+  position: 'house',
+  // A `source: "houses"` select takes no default (store rule): empty = every
+  // house of Gladys that has a location.
+  house: '',
+  radius: '1000',
+  commune: '',
+  language: 'fr',
 };
 
+// INSEE code of a commune: 5 digits, or 2A/2B and 3 digits in Corsica.
+const COMMUNE_CODE = /^(?:\d{5}|2[AB]\d{3})$/;
+
+export const isCommuneCode = (value) => COMMUNE_CODE.test(String(value ?? '').toUpperCase());
+
+const text = (value) => (typeof value === 'string' ? value.trim() : '');
+
 /**
- * Merge the user config with the defaults.
- * @param {Record<string, unknown>} raw config returned by the SDK
+ * @param {Record<string, unknown>} raw the configuration returned by the SDK
  */
 export function normalizeConfig(raw = {}) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  const commune = text(source.commune).toUpperCase();
+  const position = POSITIONS.includes(source.position) ? source.position : DEFAULT_CONFIG.position;
+  const radius = RADII.includes(String(source.radius))
+    ? String(source.radius)
+    : DEFAULT_CONFIG.radius;
   return {
-    ...DEFAULT_CONFIG,
-    ...raw,
-    // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
-    poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    position: position === 'houses' ? 'house' : position,
+    // The selector of the chosen house (source: "houses"), null = every located house.
+    houseSelector: position === 'houses' ? null : text(source.house) || null,
+    // Metres around the house, null = its whole commune.
+    radius: radius === 'commune' ? null : Number(radius),
+    communeCode: isCommuneCode(commune) ? commune : null,
+    communeInvalid: commune !== '' && !isCommuneCode(commune) ? text(source.commune) : null,
+    language: LANGUAGES.includes(source.language) ? source.language : DEFAULT_CONFIG.language,
   };
 }
