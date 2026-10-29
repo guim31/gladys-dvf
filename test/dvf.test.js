@@ -128,7 +128,7 @@ test('the zone: radius around the house, distances, windows', () => {
   assert.equal(all.length, sales.length);
   assert.ok(all.every(({ distance }) => distance === null));
   const stats = statsOf(all, '2025-12');
-  assert.deepEqual(stats.current, { count: 225, apartment: 4866, house: null });
-  assert.deepEqual(stats.previous, { count: 175, apartment: 4702, house: null });
+  assert.deepEqual(stats.current, { count: 225, apartment: 4844, house: null });
+  assert.deepEqual(stats.previous, { count: 175, apartment: 4686, house: null });
   assert.equal(stats.lastDate, '2025-12-30');
 });

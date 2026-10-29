@@ -275,6 +275,14 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
   appartement ou une maison. Prix au m² : un seul logement (dédoublonné par type, surface, pièces :
   un local apparaît une fois par parcelle), un seul prix, surface ≥ 9 m², 200 à 50 000 €/m² ;
   médiane à partir de 3 ventes, sinon pas d'état. Plusieurs logements ou prix : `x`, compté seulement.
+  Une vente avec un `Local industriel. commercial ou assimilé` sort aussi du prix au m² (`x`) : son prix
+  n'est pas celui du logement (12 ventes sur 225 dans les fixtures de Toulouse).
+- **Téléchargement en bloc** : tous les fichiers d'un millésime sont lus avant d'en remplacer un seul
+  (un échec à mi-chemin garde l'ancien millésime entier). Une commune qui avait des ventes et n'a plus
+  aucun fichier dans le nouveau millésime = millésime listé avant d'être copié : on réessaie à l'heure.
+- Sans zone connue (maison sans position, maisons illisibles), rien n'est purgé de `/data`.
+- Limite assumée : la signature d'une zone (communes, rayon) ignore la position exacte de la maison
+  (rien de la position dans `/data`) : une maison déplacée dans la même commune garde sa référence.
 - **Paris, Lyon, Marseille** : fichiers par arrondissement seulement (75101…75120, 69381…69389,
   13201…13216). `geo.api.gouv.fr/communes?lat&lon` rend 75056 : relancer avec
   `type=arrondissement-municipal`. **Pas de DVF** en 57, 67, 68 et 976 (404 partout).

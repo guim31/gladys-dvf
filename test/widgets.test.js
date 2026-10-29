@@ -35,7 +35,7 @@ test('medians, the 10 latest sales and the source, valid in every language', asy
   }
   const content = await get(world);
   const [apartment, house, sales] = ofType(content, 'value');
-  assert.deepEqual([apartment.value, apartment.unit], [4866, '€/m²']);
+  assert.deepEqual([apartment.value, apartment.unit], [4844, '€/m²']);
   // No median for the houses of the hyper-centre: a dash, no unit.
   assert.deepEqual([house.value, house.unit], ['–', undefined]);
   assert.equal(sales.value, 225);

@@ -99,14 +99,15 @@ export class Monitor {
       communes: stored.communes && typeof stored.communes === 'object' ? stored.communes : {},
       zones: stored.zones && typeof stored.zones === 'object' ? stored.zones : {},
     };
-    await this.locate();
-    await this.publishDiscovered();
-    await this.publishStates();
-    if (this.timers) {
+    // Armed first: a failure below still leaves the hourly retries running.
+    if (this.timers && !this.timer) {
       this.timer = setInterval(() => {
         this.tick().catch((err) => logger.error('Tick failed', err));
       }, this.timings.tickMs);
     }
+    await this.locate();
+    await this.publishDiscovered();
+    await this.publishStates();
     // The first download may take a while (a big city): never block the start.
     this.run(() => this.check());
   }
@@ -223,8 +224,8 @@ export class Monitor {
         problems.push(err);
       } else if (err.name === 'HttpError') {
         this.failed('geo', `Cannot resolve the zone: ${err.message}`);
-        // Keep the zones known, if any: a short outage changes nothing.
-        if (this.zones.length) {
+        // Keep the zones known for the same configuration: a short outage changes nothing.
+        if (this.zones.length && this.zonesConfig === JSON.stringify(this.config)) {
           this.problems = [];
           return;
         }
@@ -234,6 +235,7 @@ export class Monitor {
       }
     }
     this.lastLocateAt = this.now();
+    this.zonesConfig = JSON.stringify(this.config);
     this.zones = zones;
     this.problems = problems;
     await this.updateStatus();
@@ -363,6 +365,10 @@ export class Monitor {
       this.data.checkedAt !== null && this.now() - this.data.checkedAt < this.timings.checkMs;
     if (!force && fresh && this.data.vintage && complete(this.data.vintage)) {
       await this.publishStates();
+      // A zone changed with its communes already here: new baseline, new widget.
+      if (await this.fireTriggers()) {
+        this.save();
+      }
       return;
     }
     try {
@@ -374,19 +380,26 @@ export class Monitor {
           name: 'HttpError',
         });
       }
+      // Every file of the zones is read before anything changes: a failure
+      // halfway keeps the previous vintage whole, never a mix of two.
+      const staged = {};
       for (const code of needed) {
         if (this.data.communes[code]?.vintage !== vintage) {
-          this.data.communes[code] = { vintage, sales: await this.download(vintage, code) };
+          staged[code] = { vintage, sales: await this.download(vintage, code) };
         }
       }
       if (vintage !== this.data.vintage) {
         logger.info(`DVF data published up to ${vintage}`);
       }
+      Object.assign(this.data.communes, staged);
       this.data.vintage = vintage;
       this.data.checkedAt = this.now();
-      for (const code of Object.keys(this.data.communes)) {
-        if (!needed.includes(code)) {
-          delete this.data.communes[code];
+      // Forget the communes no zone needs, unless the zones are unknown for now.
+      if (this.zones.length && this.problems.length === 0) {
+        for (const code of Object.keys(this.data.communes)) {
+          if (!needed.includes(code)) {
+            delete this.data.communes[code];
+          }
         }
       }
       this.recovered('dvf', 'files.data.gouv.fr can be reached again');
@@ -404,12 +417,21 @@ export class Monitor {
 
   async download(vintage, code) {
     const sales = [];
+    let found = 0;
     for (const year of yearsOf(vintage)) {
       const csv = await getText(this.fetch, fileUrl(vintage, year, code), { accept: 'text/csv' });
       // No file: no sale in this commune that year.
       if (csv !== null) {
+        found += 1;
         sales.push(...parseSales(csv));
       }
+    }
+    // A commune that had sales and now has no file at all: the new vintage is
+    // listed before its files are all copied. Retried at the next tick.
+    if (found === 0 && this.data.communes[code]?.sales?.length) {
+      throw Object.assign(new Error(`files.data.gouv.fr: ${vintage} has no file for ${code} yet`), {
+        name: 'HttpError',
+      });
     }
     logger.debug(`${code}: ${sales.length} sales downloaded for ${vintage}`);
     return sales;
@@ -533,6 +555,7 @@ export class Monitor {
    */
   async fireTriggers() {
     let fired = false;
+    let changed = false;
     for (const zone of this.zones) {
       const result = this.resultOf(zone);
       if (!result) {
@@ -556,6 +579,7 @@ export class Monitor {
         }
       }
       if (previous?.vintage !== stats.vintage || previous?.signature !== signature) {
+        changed = true;
         this.data.zones[zone.platformId] = {
           signature,
           vintage: stats.vintage,
@@ -564,13 +588,18 @@ export class Monitor {
       }
     }
     for (const key of Object.keys(this.data.zones)) {
-      if (!this.zones.some((zone) => zone.platformId === key)) {
+      if (
+        this.zones.length &&
+        this.problems.length === 0 &&
+        !this.zones.some((zone) => zone.platformId === key)
+      ) {
         delete this.data.zones[key];
       }
     }
-    if (fired || this.results.size) {
+    if (fired || changed) {
       this.refreshWidget();
     }
+    return changed;
   }
 
   eventOf(zone, stats, count) {
@@ -596,8 +625,9 @@ export class Monitor {
 
   // --- Handlers --------------------------------------------------------------
 
+  // Outside the queue: a long first download must not hold the Discover tab.
   publishDiscoveredNow() {
-    return this.run(() => this.publishDiscovered());
+    return this.publishDiscovered();
   }
 
   async onDeviceCreated(device) {

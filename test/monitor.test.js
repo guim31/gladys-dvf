@@ -46,8 +46,8 @@ test('a house: one zone of 1 km around it, its states once the device is created
   // The recorded sales are those within 500 m of the Capitole: all within 1 km.
   assert.equal(world.state('sales'), 225);
   assert.equal(world.state('sales_previous'), 175);
-  assert.equal(world.state('apartment'), 4866);
-  assert.equal(world.state('apartment_previous'), 4702);
+  assert.equal(world.state('apartment'), 4844);
+  assert.equal(world.state('apartment_previous'), 4686);
   // The hyper-centre sold fewer than 3 houses: no median, no state.
   assert.equal(world.state('house'), undefined);
   assert.equal(world.state('house_previous'), undefined);
@@ -202,18 +202,67 @@ test('a new vintage downloads the files again and fires new_sales with the count
   assert.equal(world.fake.sceneEvents.length, 1);
 });
 
-test('the first vintage seen, and a zone that changed, only set the baseline', async (t) => {
+test('a changed zone takes a new baseline at once; the next vintage counts against it', async (t) => {
   const world = await createWorld();
   t.after(() => world.app.stop());
   await world.fake.configUpdated({ position: 'house', radius: '500', language: 'fr' });
   await world.monitor.idle();
+  // The first vintage seen, then a zone changed with its communes already here: no event.
+  assert.equal(world.fake.sceneEvents.length, 0);
   world.api.files[`${NEXT_VINTAGE}/${TOULOUSE}-2026`] = dvfFile([
     dvfRow({ id: '2026-1', date: '2026-02-10', price: 250000 }),
+    // 800 m away: outside the new 500 m zone.
+    dvfRow({ id: '2026-2', date: '2026-02-11', price: 250000, lat: 43.6117 }),
   ]);
   world.api.publish(NEXT_VINTAGE);
   await world.tick(24);
-  // 1000 m → 500 m: same communes, other radius → new baseline, no event.
-  assert.equal(world.fake.sceneEvents.length, 0);
+  assert.equal(world.fake.sceneEvents.length, 1);
+  assert.equal(world.fake.sceneEvents[0].data.count, 1);
+});
+
+test('a new vintage listed before its files: the previous one is kept whole, retried', async (t) => {
+  const api = createApi();
+  // Two districts of Paris had sales; the new vintage has the file of the first only.
+  const sale = (id) => dvfRow({ id, date: '2025-06-01', price: 500000, commune: '75101' });
+  api.files['2025-12/75101-2025'] = dvfFile([sale('a'), sale('b'), sale('c')]);
+  api.files['2025-12/75102-2025'] = dvfFile([sale('d')]);
+  const paris = await createWorld({
+    api,
+    houses: [],
+    config: { position: 'commune', commune: '75056' },
+  });
+  t.after(() => paris.app.stop());
+  await paris.createDevices();
+  assert.equal(paris.state('sales'), 4);
+  api.publish(NEXT_VINTAGE);
+  api.files[`${NEXT_VINTAGE}/75101-2025`] = api.files['2025-12/75101-2025'];
+  api.files[`${NEXT_VINTAGE}/75101-2026`] = dvfFile([
+    dvfRow({ id: 'e', date: '2026-03-01', price: 500000, commune: '75101' }),
+  ]);
+  await paris.tick(24);
+  assert.equal(paris.state('vintage'), 'décembre 2025', 'not half of 2026-06');
+  assert.equal(paris.state('sales'), 4);
+  assert.deepEqual(paris.fake.sceneEvents, []);
+  // The missing file arrives: the whole vintage is taken, the trigger fires.
+  api.files[`${NEXT_VINTAGE}/75102-2025`] = api.files['2025-12/75102-2025'];
+  await paris.tick(1);
+  assert.equal(paris.state('vintage'), 'juin 2026');
+  assert.equal(paris.fake.sceneEvents.length, 1);
+  assert.equal(paris.fake.sceneEvents[0].data.count, 1);
+});
+
+test('zones unknown for a while: the files and the baselines are kept', async (t) => {
+  const api = createApi();
+  const world = await createWorld({ api });
+  t.after(() => world.app.stop());
+  // The house lost its location: no zone, a status, and a full daily check.
+  world.fake.houses = [CHALET];
+  await world.tick(25);
+  assert.equal(world.fake.connectionStatus.connected, false);
+  await world.app.stop();
+  const saved = JSON.parse(await readFile(join(world.dir, 'dvf.json'), 'utf8'));
+  assert.deepEqual(Object.keys(saved.communes), [TOULOUSE]);
+  assert.deepEqual(Object.keys(saved.zones), ['house-maison']);
 });
 
 test('the store survives a restart: no download again, the trigger baseline kept', async (t) => {
@@ -301,10 +350,10 @@ test('the scene action summarises the chosen zone, the first one by default', as
   assert.equal(chosen.success, true);
   const outputs = chosen.data.outputs ?? chosen.data;
   assert.equal(outputs.sales, 225);
-  assert.equal(outputs.apartment_median, 4866);
+  assert.equal(outputs.apartment_median, 4844);
   assert.equal(outputs.house_median, undefined, 'no median, no output');
   assert.match(outputs.summary, /^Within 1 km of Maison: 225 sales/);
-  assert.ok(outputs.summary.includes('median prices: flats 4,866 €/m².'));
+  assert.ok(outputs.summary.includes('median prices: flats 4,844 €/m².'));
 
   const first = await world.fake.sceneAction('summary', {});
   assert.match((first.data.outputs ?? first.data).summary, /^Within 1 km of Campagne/);

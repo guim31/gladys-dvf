@@ -109,7 +109,7 @@ to the device in Gladys. No address is shown.
   (around April and October), months after the sales.
 - **Sales kept**: sales, off-plan sales and auctions including at least one flat or house.
   Exchanges, building plots and expropriations are left out. The price per m² only comes from the
-  sales of a single dwelling (outbuildings included), outliers excluded (under 200 or over
+  sales of a single dwelling (outbuildings included, no shop or office), outliers excluded (under 200 or over
   50,000 €/m²).
 - **Downloads**: a small index page **once a day** to see whether a new release is out; the
   files (one per commune and year) **only** when it is, kept in `/data`. No quota is published

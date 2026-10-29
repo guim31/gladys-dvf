@@ -110,7 +110,7 @@ al dispositivo en Gladys. No se muestra ninguna dirección.
   al año** (hacia abril y octubre), meses después de las ventas.
 - **Ventas consideradas**: ventas, ventas sobre plano y subastas con al menos un piso o una casa.
   Se descartan permutas, solares y expropiaciones. El precio por m² solo procede de las ventas de
-  una sola vivienda (anexos incluidos), sin valores atípicos (menos de 200 o más de 50 000 €/m²).
+  una sola vivienda (anexos incluidos, sin local comercial), sin valores atípicos (menos de 200 o más de 50 000 €/m²).
 - **Descargas**: una pequeña página de índice **una vez al día** para ver si ha salido una nueva
   publicación; los ficheros (uno por municipio y año) **solo** entonces, guardados en `/data`. No
   hay cuota publicada para estos servicios; la integración se queda muy por debajo.

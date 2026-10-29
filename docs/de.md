@@ -116,7 +116,7 @@ Quelle mit dem Namen, den du dem Gerät in Gladys gegeben hast. Keine Adresse wi
 - **Berücksichtigte Verkäufe**: Verkäufe, Verkäufe vom Bauträger und Versteigerungen mit
   mindestens einer Wohnung oder einem Haus. Tausch, Bauland und Enteignungen bleiben außen vor.
   Der Preis pro m² stammt nur aus Verkäufen einer einzelnen Wohnimmobilie (Nebengebäude
-  eingeschlossen), ohne Ausreißer (unter 200 oder über 50.000 €/m²).
+  eingeschlossen, ohne Gewerbefläche), ohne Ausreißer (unter 200 oder über 50.000 €/m²).
 - **Downloads**: eine kleine Indexseite **einmal am Tag**, um zu sehen, ob eine neue
   Veröffentlichung erschienen ist; die Dateien (eine pro Gemeinde und Jahr) **nur** dann,
   gespeichert in `/data`. Für diese Dienste ist kein Kontingent veröffentlicht; die Integration

@@ -21,8 +21,19 @@
 export const DVF_BASE = 'https://files.data.gouv.fr/geo-dvf';
 
 // No DVF there: Alsace-Moselle keeps its own land register (Livre foncier),
-// Mayotte is not covered.
-export const NO_DVF_DEPARTMENTS = ['57', '67', '68', '976'];
+// Mayotte and the overseas collectivities are not covered.
+export const NO_DVF_DEPARTMENTS = [
+  '57',
+  '67',
+  '68',
+  '976',
+  '975',
+  '977',
+  '978',
+  '986',
+  '987',
+  '988',
+];
 
 // The communes of Paris, Lyon and Marseille have their DVF files by
 // municipal district only.
@@ -207,6 +218,10 @@ export function parseSales(csv) {
       }
     }
     const kind = DWELLINGS[cell('type_local')];
+    // A shop or an office in the sale: its price is not the one of the home.
+    if (cell('type_local').startsWith('Local')) {
+      mutation.business = true;
+    }
     if (kind) {
       const surface = number(cell('surface_reelle_bati'));
       const rooms = number(cell('nombre_pieces_principales'));
@@ -227,7 +242,8 @@ export function parseSales(csv) {
     if (!(price > 0)) {
       continue;
     }
-    const single = mutation.dwellings.size === 1 && mutation.prices.size === 1;
+    const single =
+      mutation.dwellings.size === 1 && mutation.prices.size === 1 && !mutation.business;
     const dwelling = single ? [...mutation.dwellings.values()][0] : null;
     sales.push([
       mutation.date,

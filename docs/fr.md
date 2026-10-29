@@ -113,7 +113,7 @@ source avec le nom donné à l'appareil dans Gladys. Aucune adresse n'y figure.
   an** (avril et octobre environ), des mois après les ventes.
 - **Ventes retenues** : ventes, ventes en l'état futur d'achèvement et adjudications comprenant
   au moins un appartement ou une maison. Échanges, terrains à bâtir et expropriations sont
-  écartés. Le prix au m² ne vient que des ventes d'un seul logement (dépendances comprises),
+  écartés. Le prix au m² ne vient que des ventes d'un seul logement (dépendances comprises, sans local commercial),
   hors prix aberrants (moins de 200 ou plus de 50 000 €/m²).
 - **Téléchargements** : une petite page d'index **une fois par jour** pour voir si une nouvelle
   publication est sortie ; les fichiers (un par commune et par an) **seulement** quand elle sort,
